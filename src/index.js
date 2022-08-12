@@ -1,17 +1,31 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/es/integration/react";
+import { BrowserRouter } from "react-router-dom";
+import reportWebVitals from "./reportWebVitals";
+import App from "./App";
+import createAppStore from "./store";
+import { ConfigProvider } from "antd";
+import locale from "antd/es/locale/ru_RU";
+import moment from "moment";
+import "moment/locale/ru";
+
+moment.locale("ru");
+console.log(moment);
+const { persistor, store } = createAppStore();
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+  <BrowserRouter>
+    <Provider store={store}>
+      <PersistGate persistor={persistor}>
+        <ConfigProvider locale={locale}>
+          <App />
+        </ConfigProvider>
+      </PersistGate>
+    </Provider>
+  </BrowserRouter>,
+  document.getElementById("root")
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

@@ -6,15 +6,26 @@
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
+    "antd": "^4.21.3",
+    "axios": "^0.25.0",
+    "immutable": "^4.1.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.1",
+    "prop-types": "^15.8.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-redux": "^7.2.6",
+    "react-router": "^6.2.1",
+    "react-router-dom": "^6.2.1",
     "react-scripts": "5.0.0",
+    "redux-persist": "^6.0.0",
+    "redux-thunk": "^2.4.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "env-cmd -f ./env/.env.local craco start",
+    "build": "env-cmd -f ./env/.env.local craco build",
+    "test": "env-cmd -f ./env/.env.local craco test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -34,5 +45,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@craco/craco": "^6.4.3",
+    "craco-alias": "^3.0.1",
+    "craco-less": "^2.0.0",
+    "env-cmd": "^10.1.0",
+    "redux-devtools-extension": "^2.13.9"
   }
 }
