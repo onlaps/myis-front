@@ -7,7 +7,7 @@ import reportWebVitals from "./reportWebVitals";
 import App from "./App";
 import createAppStore from "./store";
 import { ConfigProvider } from "antd";
-import locale from "antd/es/locale/ru_RU";
+import ruRU from "antd/es/locale/ru_RU";
 import moment from "moment";
 import "moment/locale/ru";
 
@@ -18,7 +18,7 @@ ReactDOM.render(
   <BrowserRouter>
     <Provider store={store}>
       <PersistGate persistor={persistor}>
-        <ConfigProvider locale={locale}>
+        <ConfigProvider locale={ruRU}>
           <App />
         </ConfigProvider>
       </PersistGate>

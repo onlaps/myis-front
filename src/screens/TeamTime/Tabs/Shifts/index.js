@@ -30,6 +30,7 @@ const Comp = () => {
     if (!_.isEmpty(dataFilters)) {
       form.current.setFieldsValue(dataFilters);
     }
+    moment.locale("af");
   }, [dataFilters]);
 
   useEffect(() => {
@@ -142,7 +143,7 @@ const Comp = () => {
           </Select>
         </Form.Item>
         <Form.Item name="date">
-          <DatePicker picker="week" locale="ru_RU" />
+          <DatePicker picker="week" />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
