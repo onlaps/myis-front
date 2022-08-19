@@ -23,6 +23,15 @@ import EditActions from "./screens/EditActions";
 import TeamTime from "./screens/TeamTime";
 import TeamSalaries from "./screens/TeamSalaries";
 import TeamPayroll from "./screens/TeamPayroll";
+import FinanceShifts from "./screens/FinanceShifts";
+import FinanceSales from "./screens/FinanceSales";
+import FinanceExpenses from "./screens/FinanceExpenses";
+import FinancePlans from "./screens/FinancePlans";
+
+import GuestCards from "./screens/GuestCards";
+import GuestsBooking from "./screens/GuestsBooking";
+import GuestsDiscounts from "./screens/GuestsDiscounts";
+
 import NotFound from "./screens/NotFound";
 
 const App = () => {
@@ -50,6 +59,16 @@ const App = () => {
           <Route path="/team-time" element={withAuth(TeamTime)} />
           <Route path="/team-salary" element={withAuth(TeamSalaries)} />
           <Route path="/team-payroll" element={withAuth(TeamPayroll)} />
+
+          <Route path="/finance-shifts" element={withAuth(FinanceShifts)} />
+          <Route path="/finance-sales" element={withAuth(FinanceSales)} />
+          <Route path="/finance-expenses" element={withAuth(FinanceExpenses)} />
+          <Route path="/finance-plans" element={withAuth(FinancePlans)} />
+
+          <Route path="/guests-cards" element={withAuth(GuestCards)} />
+          <Route path="/guests-booking" element={withAuth(GuestsBooking)} />
+          <Route path="/guests-discounts" element={withAuth(GuestsDiscounts)} />
+
           <Route path="*" element={withAuth(NotFound)} />
         </Routes>
       </Layout>

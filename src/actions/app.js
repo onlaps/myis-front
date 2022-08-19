@@ -1,4 +1,10 @@
-import { call } from "./axios";
+import { persistor, store } from "../";
+
+export const LOGOUT = () => {
+  const { dispatch } = store;
+  dispatch({ type: "INIT" });
+  persistor.purge();
+};
 
 export const SET_APP = (path, value) => ({ type: "SET_APP", path, value });
 export const SET_APP_BY_PARAM = (path, param, value) => ({

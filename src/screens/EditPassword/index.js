@@ -1,5 +1,15 @@
 import React, { createContext, useRef, useState } from "react";
-import { Layout, Button, Input, Form, PageHeader, Card } from "antd";
+import {
+  Layout,
+  Button,
+  Input,
+  Form,
+  PageHeader,
+  Card,
+  notification,
+} from "antd";
+import { call } from "@/actions/axios";
+import { useDispatch } from "react-redux";
 
 export const Context = createContext();
 const { Content } = Layout;
@@ -8,7 +18,35 @@ const Screen = (props) => {
   const [loading, setLoading] = useState(false);
   const form = useRef();
 
-  const onFinish = () => false;
+  const dispatch = useDispatch();
+
+  const onFinish = async () => {
+    const values = await form.current.validateFields();
+
+    const { password_confirm, password } = values;
+
+    if (password !== password_confirm) {
+      return notification.error({
+        message: "Ошибка",
+        description: "Пароли не совпадают",
+      });
+    }
+
+    try {
+      setLoading(true);
+      await dispatch(
+        call({ url: `users/change_password`, method: "POST", data: values })
+      );
+      form.current.resetFields();
+      notification.success({
+        message: "Успешно",
+        description: "Пароль успешно изменен!",
+      });
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -32,7 +70,7 @@ const Screen = (props) => {
                 <Input disabled={loading} placeholder="Введите текст" />
               </Form.Item>
               <Form.Item>
-                <Button type="primary" onClick={onFinish}>
+                <Button loading={loading} type="primary" onClick={onFinish}>
                   Сохранить
                 </Button>
               </Form.Item>

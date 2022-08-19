@@ -7,11 +7,11 @@ export const columns = (options, filters, sorter) => {
       title: "Пользователь",
     },
     {
-      dataIndex: "role",
+      dataIndex: ["role", "name"],
       title: "Роль",
     },
     {
-      dataIndex: "full_name",
+      dataIndex: "name",
       title: "ФИО",
     },
     {

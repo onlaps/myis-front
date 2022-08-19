@@ -21,7 +21,7 @@ const Comp = (props) => {
       width={1000}
     >
       <Form layout="vertical" ref={form}>
-        <Title level={4}>Редактирование</Title>
+        <Title level={5}>Редактирование</Title>
         <Row gutter={20}>
           <Col span={6}>
             <Form.Item
@@ -67,7 +67,7 @@ const Comp = (props) => {
         </Row>
         <Row>
           <Col span={24}>
-            <Title level={4}>Позиции документа</Title>
+            <Title level={5}>Позиции документа</Title>
             <Form.List name="positions">
               {(fields, { add, remove }) => (
                 <>

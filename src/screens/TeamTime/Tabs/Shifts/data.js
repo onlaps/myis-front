@@ -3,7 +3,7 @@ import { advancedColumns } from "@/utils";
 export const columns = (options, filters, sorter) => {
   const data = [
     {
-      dataIndex: "Shift",
+      dataIndex: "shift_number",
       title: "Смена",
       width: 200,
     },

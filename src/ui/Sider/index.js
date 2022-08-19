@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu } from "antd";
 import { HomeOutlined, DesktopOutlined } from "@ant-design/icons";
@@ -7,7 +6,7 @@ import { ContactsOutlined, ExportOutlined } from "@ant-design/icons";
 import { TeamOutlined, DollarOutlined } from "@ant-design/icons";
 import { FileMarkdownOutlined, SettingOutlined } from "@ant-design/icons";
 import { ContainerOutlined, BarChartOutlined } from "@ant-design/icons";
-import { SET_APP } from "@/actions/app";
+import { LOGOUT } from "@/actions/app";
 import "./index.less";
 
 const { Sider } = Layout;
@@ -24,8 +23,8 @@ const items = [
   getItem("Главная", "/", <HomeOutlined />),
   getItem("Экран кассира", "/cashier", <DesktopOutlined />),
   getItem("Гости и акции", "/guests", <ContactsOutlined />, [
-    getItem("Карта гостя", "/guests-card"),
-    getItem("Бронирование", "/guests-reserve"),
+    getItem("Карта гостя", "/guests-cards"),
+    getItem("Бронирование", "/guests-booking"),
     getItem("Скидки", "/guests-discounts"),
   ]),
   getItem("Сотрудники", "/team", <TeamOutlined />, [
@@ -34,9 +33,9 @@ const items = [
     getItem("Расчет зарплаты", "/team-payroll"),
   ]),
   getItem("Финансы", "/finance", <DollarOutlined />, [
-    getItem("История смен", "/finance-shift"),
+    getItem("История смен", "/finance-shifts"),
     getItem("История продаж", "/finance-sales"),
-    getItem("Расходы", "/finance-costs"),
+    getItem("Расходы", "/finance-expenses"),
     getItem("Тарифы оплаты времени", "/finance-plans"),
   ]),
   getItem("Меню", "/menu", <FileMarkdownOutlined />, [
@@ -69,17 +68,21 @@ const items = [
 const Comp = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [collapsed, setCollapsed] = useState(false);
 
   const path = pathname.split("/")[1];
 
   const onClick = ({ key }) => {
-    if (key === "/logout") {
-      dispatch(SET_APP(["user"], null));
-      navigate("/");
-    } else {
-      navigate(key);
+    try {
+      if (key === "/logout") {
+        console.log("logging out");
+        LOGOUT();
+        navigate("/login");
+      } else {
+        navigate(key);
+      }
+    } catch (e) {
+      console.log(e);
     }
   };
 

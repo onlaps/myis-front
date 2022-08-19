@@ -5,6 +5,7 @@ import { Form, Input, Button } from "antd";
 import { Layout, Row, Col } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { SET_APP } from "@/actions/app";
+import { call } from "@/actions/axios";
 import "./index.less";
 
 const { Content } = Layout;
@@ -18,16 +19,19 @@ const Screen = () => {
 
   const onFinish = async () => {
     setLoading(true);
-    const values = await form.current.validateFields();
+    try {
+      const values = await form.current.validateFields();
 
-    const { login, password } = values;
-
-    if (login === "test" && password === "test") {
-      setTimeout(() => {
-        setLoading(true);
-        dispatch(SET_APP(["user"], { login: "test" }));
-        navigate("/");
-      }, 1000);
+      const { data } = await dispatch(
+        call({ url: "users/login", data: values, method: "POST" })
+      );
+      const { token, user } = data;
+      dispatch(SET_APP(["user"], user));
+      dispatch(SET_APP(["token"], token));
+      setLoading(false);
+      navigate("/");
+    } catch (e) {
+      setLoading(false);
     }
   };
 

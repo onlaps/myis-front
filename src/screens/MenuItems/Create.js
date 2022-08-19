@@ -104,7 +104,7 @@ const Comp = (props) => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Title level={4}>Цена на торговых точках</Title>
+            <Title level={5}>Цена на торговых точках</Title>
             {[1].map((value) => (
               <div key={value}>
                 <Title level={5}>MYROOM BIO</Title>

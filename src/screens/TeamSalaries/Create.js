@@ -1,15 +1,56 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Divider, Form, Input, Modal, Select, Switch, Typography } from "antd";
 import { Row, Col, InputNumber } from "antd";
 import { Context } from ".";
+import { call } from "@/actions/axios";
+import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
+import { useDispatch } from "react-redux";
+import _ from "lodash";
 
 const { Title } = Typography;
 
 const Comp = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding } = context;
+  const { adding, setAdding, editing } = context;
   const [loading, setLoading] = useState(false);
   const form = useRef();
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (form.current) {
+      form.current.resetFields();
+    }
+    if (editing) {
+      console.log(editing);
+      form.current.setFieldsValue(editing);
+    }
+  }, [editing]);
+
+  const onSubmit = async () => {
+    const values = await form.current.validateFields();
+
+    try {
+      setLoading(true);
+      if (editing) {
+        const { _id } = editing;
+        const { data } = await dispatch(
+          call({ url: `salaries/${_id}`, method: "PATCH", data: values })
+        );
+        dispatch(SET_APP_BY_PARAM(["salaries"], ["_id", _id], data));
+        setAdding(false);
+      } else {
+        const { data } = await dispatch(
+          call({ url: `salaries`, method: "POST", data: values })
+        );
+        dispatch(PUSH_APP(["salaries"], data));
+        setAdding(false);
+      }
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
 
   return (
     <Modal
@@ -17,6 +58,8 @@ const Comp = (props) => {
       visible={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
+      onOk={onSubmit}
+      okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
         <Form.Item
@@ -26,10 +69,10 @@ const Comp = (props) => {
         >
           <Input disabled={loading} placeholder="Введите текст" />
         </Form.Item>
-        <Form.Item label="Ставка за час" name="hourly_rate">
+        <Form.Item label="Ставка за час" name="hourly">
           <InputNumber min={0} disabled={loading} style={{ width: "100%" }} />
         </Form.Item>
-        <Form.Item label="Ставка за смену" name="shift_rate">
+        <Form.Item label="Ставка за смену" name="shiftly">
           <InputNumber min={0} disabled={loading} style={{ width: "100%" }} />
         </Form.Item>
         <Form.Item label="Способ расчета" name="type">
@@ -52,7 +95,7 @@ const Comp = (props) => {
                 <>
                   <Form.Item
                     label="% от выручки на меню и товаров"
-                    name="procent_rate"
+                    name="revenue_rate"
                   >
                     <InputNumber
                       min={0}
@@ -69,7 +112,7 @@ const Comp = (props) => {
                     <Col span={12}>
                       <Form.Item
                         label="% от выручки на меню и товаров"
-                        name="percent_from_items"
+                        name="revenue_rate"
                       >
                         <InputNumber
                           min={0}
@@ -79,7 +122,7 @@ const Comp = (props) => {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label="План" name="earnings_plan">
+                      <Form.Item label="План" name="revenue_rate_plan">
                         <InputNumber
                           min={0}
                           disabled={loading}
@@ -97,7 +140,7 @@ const Comp = (props) => {
                     <Col span={12}>
                       <Form.Item
                         label="% от выручки меню"
-                        name="percent_from_items"
+                        name="menu_revenue_rate"
                       >
                         <InputNumber
                           min={0}
@@ -107,7 +150,7 @@ const Comp = (props) => {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label="План" name="earnings_plan_menu">
+                      <Form.Item label="План" name="menu_revenue_rate_plan">
                         <InputNumber
                           min={0}
                           disabled={loading}
@@ -120,7 +163,7 @@ const Comp = (props) => {
                     <Col span={12}>
                       <Form.Item
                         label="% от выручки товаров"
-                        name="percent_from_items"
+                        name="items_revenue_rate"
                       >
                         <InputNumber
                           min={0}
@@ -130,7 +173,7 @@ const Comp = (props) => {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label="План" name="earnings_plan_items">
+                      <Form.Item label="План" name="items_revenue_rate_plan">
                         <InputNumber
                           min={0}
                           disabled={loading}
@@ -152,7 +195,7 @@ const Comp = (props) => {
                 <Form.Item
                   valuePropName="checked"
                   label="Выручка делится между сотрудниками, если в смене несколько чел."
-                  name="dividing"
+                  name="revenue_splitting"
                 >
                   <Switch />
                 </Form.Item>
@@ -185,7 +228,7 @@ const Comp = (props) => {
 
         <Row gutter={20}>
           <Col span={12}>
-            <Form.Item label="Сотрудник за месяц, план" name="shift_plan">
+            <Form.Item label="Сотрудник за месяц, план" name="user_plan">
               <InputNumber
                 min={0}
                 disabled={loading}
@@ -194,7 +237,7 @@ const Comp = (props) => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Сотрудник за месяц, премия" name="shift_bonus">
+            <Form.Item label="Сотрудник за месяц, премия" name="user_bonus">
               <InputNumber
                 min={0}
                 disabled={loading}
@@ -206,7 +249,7 @@ const Comp = (props) => {
 
         <Row gutter={20}>
           <Col span={12}>
-            <Form.Item label="Заведение за месяц, план" name="shift_plan">
+            <Form.Item label="Заведение за месяц, план" name="place_plan">
               <InputNumber
                 min={0}
                 disabled={loading}
@@ -215,7 +258,7 @@ const Comp = (props) => {
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Заведение за месяц, премия" name="shift_bonus">
+            <Form.Item label="Заведение за месяц, премия" name="place_bonus">
               <InputNumber
                 min={0}
                 disabled={loading}
