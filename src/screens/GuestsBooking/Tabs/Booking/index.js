@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
 import { Context } from "../..";
 import _ from "lodash";
+import moment from "moment";
 
 const { confirm } = Modal;
 
@@ -29,26 +30,10 @@ const Comp = () => {
   const dispatch = useDispatch();
 
   const form = useRef();
-  const books = useSelector((state) => state.app.books);
-  const places = useSelector((state) => state.app.places);
-
-  const getCards = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `cards` }));
-      dispatch(SET_APP(["cards"], data));
-    } catch (e) {}
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
-  };
+  const books = useSelector((state) => state.app.books || []);
+  const places = useSelector((state) => state.app.places || []);
 
   useEffect(() => {
-    getCards();
-    getPlaces();
     getData();
   }, []);
 
@@ -141,6 +126,16 @@ const Comp = () => {
         return `${item.time_from} - ${item.time_to}`;
       },
     },
+    createdAt: {
+      render: (val) => {
+        return moment(val).format("DD.MM.YYYY");
+      },
+    },
+    user: {
+      render: (_, item) => {
+        return item?.user?.name;
+      },
+    },
     client: {
       render: (_, item) => {
         return (
@@ -171,7 +166,7 @@ const Comp = () => {
           </Select>
         </Form.Item>
         <Form.Item name="date">
-          <DatePicker />
+          <DatePicker format="DD.MM.YYYY" />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">

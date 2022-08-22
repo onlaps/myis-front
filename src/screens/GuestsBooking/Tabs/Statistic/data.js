@@ -19,19 +19,20 @@ export const columns = (options, filters, sorter) => {
       title: "Контакты",
     },
     {
-      dataIndex: "rooms",
-      title: "Столики/Места",
+      dataIndex: "tables",
+      title: "Столы/Места",
     },
     {
       dataIndex: "description",
       title: "Комментарий",
     },
     {
-      dataIndex: "created_at",
-      title: "Дата создания",
+      dataIndex: "user",
+      title: "Автор",
     },
     {
-      dataIndex: "actions",
+      dataIndex: "createdAt",
+      title: "Дата создания",
     },
   ];
 

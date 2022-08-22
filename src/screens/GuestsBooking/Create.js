@@ -62,8 +62,12 @@ const Booking = (props) => {
       setPlace(values.place._id);
       values.tables = values.tables.map((v) => v._id);
       form.current.setFieldsValue(values);
-    }
+    } else setPlace(null);
   }, [editing]);
+
+  useEffect(() => {
+    if (!adding && form.current) form.current.resetFields();
+  }, [adding]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
@@ -106,6 +110,10 @@ const Booking = (props) => {
     const card = _.find(cards, { number });
     setCard(card);
   };
+
+  useEffect(() => {
+    if (!adding && form.current) form.current.resetFields();
+  }, [adding]);
 
   useEffect(() => {
     if (card) {
@@ -154,7 +162,7 @@ const Booking = (props) => {
               <Checkbox.Group>
                 {filteredRooms.map((room) => {
                   return (
-                    <>
+                    <div key={room._id}>
                       <div>
                         <b>{room.name}</b>
                       </div>
@@ -165,7 +173,7 @@ const Booking = (props) => {
                           </Checkbox>
                         </div>
                       ))}
-                    </>
+                    </div>
                   );
                 })}
               </Checkbox.Group>
@@ -266,10 +274,14 @@ const Tables = (props) => {
     }
   }, [editing]);
 
+  useEffect(() => {
+    if (!adding && form.current) form.current.resetFields();
+  }, [adding]);
+
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
-    if (!values.tables.length) {
+    if (!values.tables || !values.tables.length) {
       return notification.warn({
         message: "Важно",
         description: "Добавьте столики",

@@ -11,12 +11,15 @@ const { TabPane } = Tabs;
 const Screen = (props) => {
   const [activeKey, setActiveKey] = useState("1");
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(null);
   const onTabClick = (activeKey) => {
     setActiveKey(activeKey);
   };
 
   return (
-    <Context.Provider value={{ adding, setAdding, activeKey }}>
+    <Context.Provider
+      value={{ adding, setAdding, activeKey, editing, setEditing }}
+    >
       <Create />
       <Layout>
         <PageHeader

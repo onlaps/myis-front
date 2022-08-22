@@ -15,7 +15,7 @@ export const columns = (options, filters, sorter) => {
       title: "Баланс",
     },
     {
-      dataIndex: "phone",
+      dataIndex: "contact",
       title: "Контакты",
     },
     {

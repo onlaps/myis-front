@@ -81,7 +81,6 @@ const List = (props) => {
       visible={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
-      destroyOnClose={true}
       onOk={onSubmit}
       okButtonProps={{ loading }}
     >

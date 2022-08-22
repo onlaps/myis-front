@@ -7,7 +7,7 @@ export const columns = (options, filters, sorter) => {
       title: "Наименование",
     },
     {
-      dataIndex: "value",
+      dataIndex: "discount",
       title: "Скидка",
     },
     {

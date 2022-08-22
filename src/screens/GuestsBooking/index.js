@@ -1,6 +1,9 @@
 import React, { useState, createContext, useEffect } from "react";
 import { Layout, PageHeader, Tabs, Button } from "antd";
 import { Booking, Tables, Statistic } from "./Tabs";
+import { useDispatch, useSelector } from "react-redux";
+import { call } from "@/actions/axios";
+import { SET_APP } from "@/actions/app";
 import Create from "./Create";
 
 export const Context = createContext();
@@ -16,9 +19,38 @@ const Screen = (props) => {
     setActiveKey(activeKey);
   };
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     if (!adding) setEditing(null);
   }, [adding]);
+
+  useEffect(() => {
+    getRooms();
+    getPlaces();
+    getCards();
+  }, []);
+
+  const getCards = async () => {
+    try {
+      const { data } = await dispatch(call({ url: `cards` }));
+      dispatch(SET_APP(["cards"], data));
+    } catch (e) {}
+  };
+
+  const getRooms = async () => {
+    try {
+      const { data } = await dispatch(call({ url: `rooms` }));
+      dispatch(SET_APP(["rooms"], data));
+    } catch (e) {}
+  };
+
+  const getPlaces = async () => {
+    try {
+      const { data } = await dispatch(call({ url: `places` }));
+      dispatch(SET_APP(["places"], data));
+    } catch (e) {}
+  };
 
   return (
     <Context.Provider

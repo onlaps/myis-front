@@ -13,7 +13,7 @@ const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
-  const { setAdding, setEditing, activeKey } = context;
+  const { adding, setAdding, setEditing, activeKey } = context;
   const [filters, setFilters] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [sorter, setSorter] = useState(null);
@@ -86,14 +86,23 @@ const Comp = () => {
     />
   );
 
+  const rooms = useSelector((state) => state.app.rooms || []);
+  const places = useSelector((state) => state.app.places || []);
+
   useEffect(() => {
-    if (activeKey === "3") getData();
+    if (activeKey === "3") {
+      getData();
+    }
   }, [activeKey]);
 
-  const rooms = useSelector((state) => state.app.rooms || []);
+  useEffect(() => {
+    if (!adding) getData();
+  }, [adding]);
 
   const form = useRef();
-  const onFinish = () => {};
+  const onFinish = () => {
+    getData();
+  };
 
   const options = {
     actions: {
@@ -128,7 +137,7 @@ const Comp = () => {
       >
         <Form.Item name="place">
           <Select style={{ width: 200 }} placeholder="Выберите из списка">
-            {rooms.map((v) => (
+            {places.map((v) => (
               <Select.Option key={v._id} value={v._id}>
                 {v.name}
               </Select.Option>

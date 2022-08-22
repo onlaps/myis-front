@@ -23,7 +23,11 @@ export const columns = (options, filters, sorter) => {
       title: "Комментарий",
     },
     {
-      dataIndex: "created_at",
+      dataIndex: "user",
+      title: "Автор",
+    },
+    {
+      dataIndex: "createdAt",
       title: "Дата создания",
     },
     {

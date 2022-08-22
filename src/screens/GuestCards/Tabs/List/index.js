@@ -123,6 +123,16 @@ const Comp = () => {
         return null;
       },
     },
+    contact: {
+      render: (_, val) => {
+        const data = [];
+
+        if (val.phone) data.push(val.phone);
+        if (val.name) data.push(val.name);
+
+        return data.map((v) => <div key={v}>{v}</div>);
+      },
+    },
     description: {
       render: (val) => {
         if (val) {
