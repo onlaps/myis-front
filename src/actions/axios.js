@@ -20,6 +20,7 @@ axios.interceptors.response.use(
         const message = e?.response?.data?.message;
         if (message) values.description = message;
         notification.error(values);
+        throw Error("Some error");
       }
     }
   }

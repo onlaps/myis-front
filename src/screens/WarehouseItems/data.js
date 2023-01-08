@@ -7,16 +7,16 @@ export const columns = (options, filters, sorter) => {
       title: "Название",
     },
     {
-      dataIndex: "left",
+      dataIndex: "amount",
       title: "Остаток",
     },
     {
       dataIndex: "price",
-      title: "Цена",
+      title: "Цена, ₸",
     },
     {
       dataIndex: "total",
-      title: "Стоимость",
+      title: "Стоимость, ₸",
     },
     {
       title: "Действия",
@@ -28,17 +28,28 @@ export const columns = (options, filters, sorter) => {
   return advancedColumns(options, filters, sorter)(data);
 };
 
-export const historyColumns = [
-  {
-    dataIndex: "type",
-  },
-  {
-    dataIndex: "createdAt",
-  },
-  {
-    dataIndex: "value",
-  },
-  {
-    dataIndex: "price",
-  },
-];
+export const historyColumns = (options, filters, sorter) => {
+  const data = [
+    {
+      title: "Тип движения",
+      dataIndex: "wh_action",
+    },
+    {
+      title: "Дата",
+      dataIndex: "createdAt",
+    },
+    {
+      title: "Точка",
+      dataIndex: "place",
+    },
+    {
+      title: "Количество",
+      dataIndex: "amount",
+    },
+    {
+      title: "Цена, ₸",
+      dataIndex: "price",
+    },
+  ];
+  return advancedColumns(options, filters, sorter)(data);
+};

@@ -7,6 +7,8 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
+import { types, discount_types } from "./Tabs/Discounts/data";
+import { menu_types, client_types } from "./Tabs/Discounts/data";
 import _ from "lodash";
 
 const { Title } = Typography;
@@ -29,6 +31,9 @@ const Discount = (props) => {
   const form = useRef();
   const dispatch = useDispatch();
   const places = useSelector((state) => state.app.places || []);
+  const menu_categories = useSelector(
+    (state) => state.app.menu_categories || []
+  );
 
   useEffect(() => {
     if (form.current) {
@@ -45,6 +50,9 @@ const Discount = (props) => {
       values.time_to = time_to;
       if (!_.isEmpty(values.places)) {
         values.places = values.places.map((v) => v._id);
+      }
+      if (!_.isEmpty(values.menu_categories)) {
+        values.menu_categories = values.menu_categories.map((v) => v._id);
       }
       form.current.setFieldsValue(values);
     }
@@ -130,7 +138,11 @@ const Discount = (props) => {
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Select disabled={loading}>
-            <Select.Option value="1">Выбор вручную</Select.Option>
+            {types.map((v) => (
+              <Select.Option key={v.value} value={v.value}>
+                {v.name}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item
@@ -139,32 +151,108 @@ const Discount = (props) => {
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Select disabled={loading}>
-            <Select.Option value="1">На время и меню</Select.Option>
-          </Select>
-        </Form.Item>
-        <Title level={5}>Ограничения по меню</Title>
-        <Form.Item
-          label="Ограничения по меню"
-          name="menu_type"
-          rules={[{ required: true, message: "Данное поле обязательно" }]}
-        >
-          <Select disabled={loading}>
-            <Select.Option value="1">Без ограничений</Select.Option>
-          </Select>
-        </Form.Item>
-        <Title level={5}>Ограничения по времени</Title>
-        <Form.Item
-          label="Дни недели"
-          name="days"
-          rules={[{ required: true, message: "Данное поле обязательно" }]}
-        >
-          <Checkbox.Group>
-            {days.map((d, i) => (
-              <Checkbox key={d} value={i + 1}>
-                {d}
-              </Checkbox>
+            {discount_types.map((v) => (
+              <Select.Option key={v.value} value={v.value}>
+                {v.name}
+              </Select.Option>
             ))}
-          </Checkbox.Group>
+          </Select>
+        </Form.Item>
+        <Form.Item
+          noStyle
+          shouldUpdate={(pv, cv) => pv.discount_type !== cv.discount_type}
+        >
+          {(v) => {
+            const discount_type = v.getFieldValue("discount_type");
+            if (discount_type === "1" || discount_type === "3") {
+              return (
+                <>
+                  <Title level={5}>Ограничения по меню</Title>
+                  <Form.Item
+                    label="Ограничения по меню"
+                    name="menu_type"
+                    rules={[
+                      { required: true, message: "Данное поле обязательно" },
+                    ]}
+                  >
+                    <Select disabled={loading}>
+                      {menu_types.map((v) => (
+                        <Select.Option key={v.value} value={v.value}>
+                          {v.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(pv, cv) => pv.menu_type !== cv.menu_type}
+                  >
+                    {(v) => {
+                      const menu_type = v.getFieldValue("menu_type");
+                      if (menu_type === "2") {
+                        return (
+                          <>
+                            <Form.Item
+                              label="Доступные категории"
+                              name="menu_categories"
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Данное поле обязательно",
+                                },
+                              ]}
+                            >
+                              <Select
+                                disabled={loading}
+                                mode="multiple"
+                                maxTagCount="responsive"
+                              >
+                                {menu_categories.map((v) => (
+                                  <Select.Option key={v._id} value={v._id}>
+                                    {v.name}
+                                  </Select.Option>
+                                ))}
+                              </Select>
+                            </Form.Item>
+                          </>
+                        );
+                      }
+                    }}
+                  </Form.Item>
+                </>
+              );
+            }
+          }}
+        </Form.Item>
+        <Form.Item
+          noStyle
+          shouldUpdate={(pv, cv) => pv.discount_type !== cv.discount_type}
+        >
+          {(v) => {
+            const discount_type = v.getFieldValue("discount_type");
+            if (discount_type === "1" || discount_type === "2") {
+              return (
+                <>
+                  <Title level={5}>Ограничения по времени</Title>
+                  <Form.Item
+                    label="Дни недели"
+                    name="days"
+                    rules={[
+                      { required: true, message: "Данное поле обязательно" },
+                    ]}
+                  >
+                    <Checkbox.Group>
+                      {days.map((d, i) => (
+                        <Checkbox key={d} value={i + 1}>
+                          {d}
+                        </Checkbox>
+                      ))}
+                    </Checkbox.Group>
+                  </Form.Item>
+                </>
+              );
+            }
+          }}
         </Form.Item>
         <Row gutter={20}>
           <Col span={12}>
@@ -208,7 +296,11 @@ const Discount = (props) => {
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Select disabled={loading}>
-            <Select.Option value="1">Доступно всем</Select.Option>
+            {client_types.map((v) => (
+              <Select.Option key={v.value} value={v.value}>
+                {v.name}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item label="Комментарий" name="description">
@@ -237,18 +329,66 @@ const Discount = (props) => {
 
 const Promocode = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding } = context;
+  const { adding, setAdding, editing } = context;
 
   const [loading, setLoading] = useState(false);
   const form = useRef();
+
+  const dispatch = useDispatch();
+
+  const discounts = useSelector((state) => state.app.discounts || []);
+
+  useEffect(() => {
+    if (form.current) {
+      form.current.resetFields();
+    }
+    if (editing) {
+      const values = { ...editing };
+      values.discount = values.discount._id;
+      values.due_to = moment(values.due_to);
+      form.current.setFieldsValue(values);
+    }
+  }, [editing]);
+
+  useEffect(() => {
+    if (!adding && form.current) form.current.resetFields();
+  }, [adding]);
+
+  const onSubmit = async () => {
+    const values = await form.current.validateFields();
+
+    values.due_to = moment(values.due_to).format("YYYY-MM-DD");
+
+    try {
+      setLoading(true);
+      if (editing) {
+        const { _id } = editing;
+        const { data } = await dispatch(
+          call({ url: `promocodes/${_id}`, method: "PATCH", data: values })
+        );
+        dispatch(SET_APP_BY_PARAM(["promocodes"], ["_id", _id], data));
+        setAdding(false);
+      } else {
+        const { data } = await dispatch(
+          call({ url: `promocodes`, method: "POST", data: values })
+        );
+        dispatch(PUSH_APP(["promocodes"], data));
+        setAdding(false);
+      }
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
 
   return (
     <Modal
       title="Создать"
       visible={adding}
       okText="Сохранить"
-      destroyOnClose={true}
       onCancel={() => setAdding(false)}
+      onOk={onSubmit}
+      okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
         <Form.Item
@@ -257,7 +397,11 @@ const Promocode = (props) => {
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Select disabled={loading} placeholder="Выберите скидку">
-            <Select.Option value="test">test</Select.Option>
+            {discounts.map((v) => (
+              <Select.Option key={v._id} value={v._id}>
+                {v.name}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item
@@ -265,7 +409,11 @@ const Promocode = (props) => {
           name="due_to"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
-          <DatePicker style={{ width: "100%" }} />
+          <DatePicker
+            disabled={loading}
+            style={{ width: "100%" }}
+            format="DD.MM.YYYY"
+          />
         </Form.Item>
         <Form.Item label="Комментарий" name="description">
           <Input.TextArea disabled={loading} placeholder="Введите текст" />

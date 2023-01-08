@@ -1,14 +1,13 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import { Layout } from "antd";
-import { withAuth, authenticated } from "./auth";
-
-import { Sider } from "./ui";
+import { withAuth } from "./auth";
 
 import "antd/dist/antd.less";
 import "./App.less";
 
 import Home from "./screens/Home";
+import CashierSelect from "./screens/CashierSelect";
+import Cashier from "./screens/Cashier";
 import Login from "./screens/Login";
 import WarehouseDictionary from "./screens/WarehouseDictionary";
 import WarehouseItems from "./screens/WarehouseItems";
@@ -23,6 +22,7 @@ import EditActions from "./screens/EditActions";
 import TeamTime from "./screens/TeamTime";
 import TeamSalaries from "./screens/TeamSalaries";
 import TeamPayroll from "./screens/TeamPayroll";
+import TeamChecklists from "./screens/TeamChecklists";
 import FinanceShifts from "./screens/FinanceShifts";
 import FinanceSales from "./screens/FinanceSales";
 import FinanceExpenses from "./screens/FinanceExpenses";
@@ -36,43 +36,42 @@ import NotFound from "./screens/NotFound";
 
 const App = () => {
   return (
-    <Layout className="main__wrapper">
-      {authenticated(Sider)}
-      <Layout>
-        <Routes>
-          <Route path="/" element={withAuth(Home)} />
-          <Route path="/login" element={<Login />} />
+    <Routes>
+      <Route path="/" element={withAuth(Home)} />
+      <Route path="/cashier-select" element={withAuth(CashierSelect)} />
+      <Route path="/cashier/*" element={withAuth(Cashier)} />
+      <Route path="/login" element={<Login />} />
 
-          <Route path="/wh-dict" element={withAuth(WarehouseDictionary)} />
-          <Route path="/wh-items" element={withAuth(WarehouseItems)} />
-          <Route path="/wh-actions" element={withAuth(WarehouseActions)} />
+      <Route path="/wh-dict" element={withAuth(WarehouseDictionary)} />
+      <Route path="/wh-items" element={withAuth(WarehouseItems)} />
+      <Route path="/wh-actions" element={withAuth(WarehouseActions)} />
 
-          <Route path="/menu-dict" element={withAuth(MenuDictionary)} />
-          <Route path="/menu-items" element={withAuth(MenuItems)} />
+      <Route path="/menu-dict" element={withAuth(MenuDictionary)} />
+      <Route path="/menu-items" element={withAuth(MenuItems)} />
 
-          <Route path="/edit-team" element={withAuth(EditTeam)} />
-          <Route path="/edit-roles" element={withAuth(EditRoles)} />
-          <Route path="/edit-password" element={withAuth(EditPassword)} />
-          <Route path="/edit-places" element={withAuth(EditPlaces)} />
-          <Route path="/edit-actions" element={withAuth(EditActions)} />
+      <Route path="/edit-team" element={withAuth(EditTeam)} />
+      <Route path="/edit-roles" element={withAuth(EditRoles)} />
+      <Route path="/edit-password" element={withAuth(EditPassword)} />
+      <Route path="/edit-places" element={withAuth(EditPlaces)} />
+      <Route path="/edit-actions" element={withAuth(EditActions)} />
 
-          <Route path="/team-time" element={withAuth(TeamTime)} />
-          <Route path="/team-salary" element={withAuth(TeamSalaries)} />
-          <Route path="/team-payroll" element={withAuth(TeamPayroll)} />
+      <Route path="/team-time" element={withAuth(TeamTime)} />
+      <Route path="/team-salary" element={withAuth(TeamSalaries)} />
+      <Route path="/team-payroll" element={withAuth(TeamPayroll)} />
+      <Route path="/team-checklists" element={withAuth(TeamChecklists)} />
 
-          <Route path="/finance-shifts" element={withAuth(FinanceShifts)} />
-          <Route path="/finance-sales" element={withAuth(FinanceSales)} />
-          <Route path="/finance-expenses" element={withAuth(FinanceExpenses)} />
-          <Route path="/finance-plans" element={withAuth(FinancePlans)} />
+      <Route path="/finance-shifts" element={withAuth(FinanceShifts)} />
+      <Route path="/finance-sales" element={withAuth(FinanceSales)} />
+      <Route path="/finance-expenses" element={withAuth(FinanceExpenses)} />
+      <Route path="/finance-plans" element={withAuth(FinancePlans)} />
 
-          <Route path="/guests-cards" element={withAuth(GuestCards)} />
-          <Route path="/guests-booking" element={withAuth(GuestsBooking)} />
-          <Route path="/guests-discounts" element={withAuth(GuestsDiscounts)} />
+      <Route path="/guests-cards" element={withAuth(GuestCards)} />
+      <Route path="/guests-booking" element={withAuth(GuestsBooking)} />
+      <Route path="/guests-discounts" element={withAuth(GuestsDiscounts)} />
 
-          <Route path="*" element={withAuth(NotFound)} />
-        </Routes>
-      </Layout>
-    </Layout>
+      <Route path="*" element={withAuth(NotFound)} />
+    </Routes>
   );
 };
+
 export default App;

@@ -6,6 +6,7 @@ import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
+import Filters from "@/components/Filters";
 import queryString from "query-string";
 import { Context } from "../..";
 import moment from "moment";
@@ -14,9 +15,12 @@ const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
-  const { setAdding, setEditing } = context;
+  const { setAdding, setEditing, activeKey } = context;
   const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    total: 10,
+  });
   const [sorter, setSorter] = useState(null);
 
   const onChange = (pagination, filters, sorter) => {
@@ -47,19 +51,25 @@ const Comp = () => {
     try {
       setLoading(true);
       const values = await form.current.validateFields();
+      values.page = pagination.current;
       const query = queryString.stringify(values);
       const { data } = await dispatch(call({ url: `cards?${query}` }));
-      dispatch(SET_APP(["cards"], data));
+      const { data: items, ...p } = data;
+      dispatch(SET_APP(["cards"], items));
+      setPagination(p);
       setLoading(false);
     } catch (e) {
+      console.log(e);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    getData();
-    getSources();
-  }, []);
+    if (activeKey === "1") {
+      getData();
+      getSources();
+    }
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDelete = async (id) => {
     try {
@@ -80,7 +90,7 @@ const Comp = () => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },
@@ -149,28 +159,23 @@ const Comp = () => {
 
   return (
     <>
-      <Form
-        style={{ marginBottom: 16 }}
-        ref={form}
-        layout="inline"
-        onFinish={onFinish}
-      >
+      <Filters ref={form} onFinish={onFinish}>
         <Form.Item name="search">
-          <Input placeholder="Поиск" />
+          <Input placeholder="Поиск" allowClear />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Поиск
           </Button>
         </Form.Item>
-      </Form>
+      </Filters>
       <Table
         columns={columns(options, filters, sorter)}
         onChange={onChange}
         rowKey="_id"
         dataSource={cards}
         loading={loading}
-        pagination={false}
+        pagination={pagination}
       />
     </>
   );

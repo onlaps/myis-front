@@ -1,4 +1,4 @@
-import React, { useState, createContext } from "react";
+import React, { useState, createContext, useEffect } from "react";
 import { Layout, PageHeader, Tabs, Button } from "antd";
 import { Plans, Statistic } from "./Tabs";
 import Create from "./Create";
@@ -11,6 +11,7 @@ export const Context = createContext();
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
   const [activeKey, setActiveKey] = useState("1");
+  const [editing, setEditing] = useState(null);
 
   const onTabClick = (activeKey) => {
     setActiveKey(activeKey);
@@ -29,8 +30,12 @@ const Screen = (props) => {
     return extra;
   };
 
+  useEffect(() => {
+    if (!adding) setEditing(null);
+  }, [adding]);
+
   return (
-    <Context.Provider value={{ adding, setAdding }}>
+    <Context.Provider value={{ adding, setAdding, editing, setEditing }}>
       <Create />
       <Layout>
         <PageHeader

@@ -8,15 +8,15 @@ export const columns = (options, filters, sorter) => {
     },
     {
       dataIndex: "cost_price",
-      title: "Себестоимость",
+      title: "Себестоимость, ₸",
     },
     {
       dataIndex: "price",
-      title: "Цена",
+      title: "Цена, ₸",
     },
     {
       dataIndex: "margin",
-      title: "Наценка",
+      title: "Наценка, ₸",
     },
     {
       dataIndex: "margin_percent",

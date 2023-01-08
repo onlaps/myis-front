@@ -54,7 +54,7 @@ const Screen = (props) => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },

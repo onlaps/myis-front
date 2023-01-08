@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Table, Form, Select, Button, DatePicker } from "antd";
 import { columns } from "./data";
+import { useSelector } from "react-redux";
 
 const Comp = () => {
   const [filters, setFilters] = useState(null);
@@ -8,6 +9,8 @@ const Comp = () => {
   const [sorter, setSorter] = useState(null);
 
   const form = useRef();
+
+  const places = useSelector((state) => state.app.places || []);
 
   const onChange = (pagination, filters, sorter) => {
     setPagination(pagination);
@@ -28,8 +31,13 @@ const Comp = () => {
         onFinish={onFinish}
       >
         <Form.Item name="place">
-          <Select style={{ width: "100%" }} placeholder="Все торговые точки">
-            <Select.Option value="demo">Demo</Select.Option>
+          <Select style={{ width: 150 }} placeholder="Все торговые точки">
+            {places &&
+              places.map((v) => (
+                <Select.Option key={v._id} value={v._id}>
+                  {v.name}
+                </Select.Option>
+              ))}
           </Select>
         </Form.Item>
         <Form.Item name="date">

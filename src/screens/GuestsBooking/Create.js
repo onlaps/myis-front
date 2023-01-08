@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Form, Input, InputNumber, Modal, Space } from "antd";
+import { Form, Input, InputNumber, Modal, Popover, Space } from "antd";
 import { Button, Checkbox, notification, Select } from "antd";
 import { Typography, DatePicker, Row, Col, TimePicker } from "antd";
 import { AutoComplete } from "antd";
@@ -12,6 +12,8 @@ import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import _ from "lodash";
 import moment from "moment";
+import { SketchPicker } from "react-color";
+import "./index.less";
 
 const { Title } = Typography;
 
@@ -264,13 +266,18 @@ const Tables = (props) => {
   const dispatch = useDispatch();
 
   const places = useSelector((state) => state.app.places || []);
+  const tariffs = useSelector((state) => state.app.tariffs || []);
 
   useEffect(() => {
     if (form.current) {
       form.current.resetFields();
     }
     if (editing) {
-      form.current.setFieldsValue(editing);
+      const values = { ...editing };
+      if (values.tariff) {
+        values.tariff = values.tariff._id;
+      }
+      form.current.setFieldsValue(values);
     }
   }, [editing]);
 
@@ -320,7 +327,11 @@ const Tables = (props) => {
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
-        <Form.Item name="place">
+        <Form.Item
+          name="place"
+          label="Торговая точка"
+          rules={[{ required: true, message: "Данное поле обязательно" }]}
+        >
           <Select
             disabled={!!editing || loading}
             style={{ width: "100%" }}
@@ -340,7 +351,23 @@ const Tables = (props) => {
         >
           <Input disabled={loading} placeholder="Введите текст" />
         </Form.Item>
-
+        <Form.Item
+          name="tariff"
+          label="Тариф"
+          rules={[{ required: true, message: "Данное поле обязательно" }]}
+        >
+          <Select
+            disabled={loading}
+            style={{ width: "100%" }}
+            placeholder="Выберите из списка"
+          >
+            {tariffs.map((v) => (
+              <Select.Option key={v._id} value={v._id}>
+                {v.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
         <Title level={5}>Столы</Title>
         <Form.List name="tables">
           {(fields, { add, remove }) => (
@@ -354,6 +381,7 @@ const Tables = (props) => {
                         key={`${index} ${field.key} number`}
                         label="Номер"
                         name={[field.name, "number"]}
+                        style={{ width: 80 }}
                         rules={[
                           {
                             required: true,
@@ -376,6 +404,65 @@ const Tables = (props) => {
                         ]}
                       >
                         <Input disabled={loading} />
+                      </Form.Item>
+                      <Form.Item
+                        noStyle
+                        shouldUpdate={(pv, cv) => {
+                          return (
+                            pv.tables &&
+                            cv.tables &&
+                            pv.tables[field.key]?.color !==
+                              cv.tables[field.key]?.color
+                          );
+                        }}
+                      >
+                        {(v) => {
+                          const tables = v.getFieldValue("tables");
+                          const table = tables[field.key];
+                          const color = table?.color || "#FF0000";
+                          return (
+                            <Form.Item
+                              {...field}
+                              key={`${index} ${field.key} color`}
+                              label="Цвет"
+                              initialValue={color}
+                              name={[field.name, "color"]}
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Данное поле обязательно",
+                                },
+                              ]}
+                            >
+                              <Input
+                                disabled={true}
+                                addonAfter={
+                                  <Popover
+                                    placement="top"
+                                    content={
+                                      <SketchPicker
+                                        color={color}
+                                        disableAlpha={true}
+                                        onChange={(e) =>
+                                          v.setFieldValue(
+                                            ["tables", field.key, "color"],
+                                            e.hex
+                                          )
+                                        }
+                                      />
+                                    }
+                                    trigger="click"
+                                  >
+                                    <div
+                                      style={{ backgroundColor: color }}
+                                      className="color-picker-tables"
+                                    />
+                                  </Popover>
+                                }
+                              />
+                            </Form.Item>
+                          );
+                        }}
                       </Form.Item>
                       <Form.Item label=" " {...field}>
                         <MinusCircleOutlined

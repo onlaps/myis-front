@@ -1,7 +1,7 @@
 import React, { useState, createContext, useEffect } from "react";
 import { Layout, PageHeader, Tabs, Button } from "antd";
 import { Booking, Tables, Statistic } from "./Tabs";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import Create from "./Create";

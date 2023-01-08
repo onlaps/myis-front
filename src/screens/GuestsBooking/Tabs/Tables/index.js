@@ -6,6 +6,7 @@ import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import { Context } from "../..";
+import Filters from "@/components/Filters";
 import queryString from "query-string";
 import _ from "lodash";
 
@@ -14,15 +15,26 @@ const { confirm } = Modal;
 const Comp = () => {
   const context = useContext(Context);
   const { adding, setAdding, setEditing, activeKey } = context;
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  // const [filters, setFilters] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
+
+  useEffect(() => {
+    getTariffs();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const getTariffs = async () => {
+    try {
+      const { data } = await dispatch(call({ url: `tariffs` }));
+      dispatch(SET_APP(["tariffs"], data));
+    } catch (e) {}
   };
 
   const dispatch = useDispatch();
@@ -59,7 +71,7 @@ const Comp = () => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },
@@ -93,11 +105,11 @@ const Comp = () => {
     if (activeKey === "3") {
       getData();
     }
-  }, [activeKey]);
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!adding) getData();
-  }, [adding]);
+  }, [adding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const form = useRef();
   const onFinish = () => {
@@ -112,6 +124,12 @@ const Comp = () => {
             <EllipsisOutlined />
           </Dropdown>
         );
+      },
+    },
+    tariff: {
+      render: (val) => {
+        if (!val) return null;
+        return val.name;
       },
     },
     tables: {
@@ -129,12 +147,7 @@ const Comp = () => {
 
   return (
     <>
-      <Form
-        style={{ marginBottom: 16 }}
-        ref={form}
-        layout="inline"
-        onFinish={onFinish}
-      >
+      <Filters ref={form} onFinish={onFinish}>
         <Form.Item name="place">
           <Select style={{ width: 200 }} placeholder="Выберите из списка">
             {places.map((v) => (
@@ -149,10 +162,10 @@ const Comp = () => {
             Поиск
           </Button>
         </Form.Item>
-      </Form>
+      </Filters>
       <Table
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
+        // onChange={onChange}
         rowKey="_id"
         dataSource={rooms}
         loading={loading}

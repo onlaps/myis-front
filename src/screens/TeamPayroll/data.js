@@ -3,12 +3,12 @@ import { advancedColumns } from "@/utils";
 export const columns = (options, filters, sorter) => {
   const data = [
     {
-      dataIndex: "user",
+      dataIndex: "name",
       title: "Сотрудник",
     },
     {
       dataIndex: "shifts",
-      title: "Остаток",
+      title: "Смен",
     },
     {
       dataIndex: "hours",
@@ -19,7 +19,7 @@ export const columns = (options, filters, sorter) => {
       title: "Гости",
     },
     {
-      dataIndex: "items",
+      dataIndex: "menu_items",
       title: "Товары",
     },
     {

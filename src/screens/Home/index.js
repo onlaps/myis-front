@@ -26,7 +26,7 @@ const Screen = (props) => {
         </Col>
         <Col span={6}>
           <Card>
-            <Statistic title="Выручка, за месяц" value={17} />
+            <Statistic title="Выручка, с начала месяца" value={17} />
           </Card>
         </Col>
         <Col span={6}>

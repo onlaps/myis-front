@@ -15,6 +15,18 @@ export const columns = (options, filters, sorter) => {
       dataIndex: "first_hour",
     },
     {
+      title: "Со второго часа",
+      dataIndex: "second_hour",
+    },
+    {
+      title: "С третьего часа",
+      dataIndex: "third_hour",
+    },
+    {
+      title: "Остальные часы",
+      dataIndex: "hour",
+    },
+    {
       title: "Минимум",
       dataIndex: "min",
     },
@@ -25,10 +37,6 @@ export const columns = (options, filters, sorter) => {
     {
       title: "Округление",
       dataIndex: "round",
-    },
-    {
-      title: "Дни",
-      dataIndex: "days",
     },
     {
       dataIndex: "actions",

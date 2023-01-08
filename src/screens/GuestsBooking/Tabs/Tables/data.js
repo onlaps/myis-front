@@ -11,6 +11,10 @@ export const columns = (options, filters, sorter) => {
       dataIndex: "tables",
     },
     {
+      title: "Тариф",
+      dataIndex: "tariff",
+    },
+    {
       dataIndex: "actions",
     },
   ];

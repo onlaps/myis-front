@@ -1,16 +1,59 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Form, Input, Modal, Select, Checkbox, TimePicker } from "antd";
 import { Switch, InputNumber, Row, Col } from "antd";
 import moment from "moment";
+import { call } from "@/actions/axios";
+import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
+import { useDispatch, useSelector } from "react-redux";
 import { Context } from ".";
+import _ from "lodash";
 
 const Comp = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding } = context;
+  const { adding, setAdding, editing } = context;
   const [loading, setLoading] = useState(false);
   const form = useRef();
 
   const days = moment.weekdaysShort(true);
+
+  const places = useSelector((state) => state.app.places || []);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (form.current) {
+      form.current.resetFields();
+    }
+    if (editing) {
+      const values = { ...editing };
+      form.current.setFieldsValue(values);
+    }
+  }, [editing]);
+
+  const onSubmit = async () => {
+    const values = await form.current.validateFields();
+
+    try {
+      setLoading(true);
+      if (editing) {
+        const { _id } = editing;
+        const { data } = await dispatch(
+          call({ url: `tariffs/${_id}`, method: "PATCH", data: values })
+        );
+        dispatch(SET_APP_BY_PARAM(["tariffs"], ["_id", _id], data));
+        setAdding(false);
+      } else {
+        const { data } = await dispatch(
+          call({ url: `tariffs`, method: "POST", data: values })
+        );
+        dispatch(PUSH_APP(["tariffs"], data));
+        setAdding(false);
+      }
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
 
   return (
     <Modal
@@ -18,6 +61,8 @@ const Comp = (props) => {
       visible={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
+      onOk={onSubmit}
+      okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
         <Form.Item
@@ -28,18 +73,27 @@ const Comp = (props) => {
           <Input disabled={loading} placeholder="Введите текст" />
         </Form.Item>
         <Form.Item label="Торговые точки" name="places">
-          <Select>
-            <Select.Option value="test">test</Select.Option>
+          <Select
+            allowClear
+            disabled={loading}
+            placeholder="Доступно для всех точек"
+          >
+            {places &&
+              places.map((v) => (
+                <Select.Option key={v._id} value={v._id}>
+                  {v.name}
+                </Select.Option>
+              ))}
           </Select>
         </Form.Item>
         <Form.Item
           label="Дни недели"
-          name="days"
+          name="days_of_week"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Checkbox.Group>
             {days.map((d, i) => (
-              <Checkbox key={d} value={i}>
+              <Checkbox key={d} value={i} disabled={loading}>
                 {d}
               </Checkbox>
             ))}
@@ -47,13 +101,21 @@ const Comp = (props) => {
         </Form.Item>
         <Row gutter={20}>
           <Col span={12}>
-            <Form.Item label="Время от" name="start_at">
-              <TimePicker style={{ width: "100%" }} placeholder="С открытия" />
+            <Form.Item label="Время от" name="time_from">
+              <TimePicker
+                disabled={loading}
+                style={{ width: "100%" }}
+                placeholder="С открытия"
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Время до" name="end_at">
-              <TimePicker style={{ width: "100%" }} placeholder="До закрытия" />
+            <Form.Item label="Время до" name="time_to">
+              <TimePicker
+                disabled={loading}
+                style={{ width: "100%" }}
+                placeholder="До закрытия"
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -92,7 +154,7 @@ const Comp = (props) => {
         </Form.Item>
         <Form.Item
           label="Остальные часы"
-          name="other_hours"
+          name="hour"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <InputNumber
@@ -131,25 +193,18 @@ const Comp = (props) => {
           <InputNumber disabled={loading} style={{ width: "100%" }} />
         </Form.Item>
         <Form.Item
-          label="Использовать минимум даже если у гостя есть бесплатные минуты (иначе при бесплатных минутах минимум действовать не будет)"
-          name="use_minimum"
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
-        <Form.Item
           label="Применять скидки к минимуму (иначе минимум остается вне зависимости от наличия скидки)"
           name="apply_discount_min"
           valuePropName="checked"
         >
-          <Switch />
+          <Switch disabled={loading} />
         </Form.Item>
         <Form.Item
           label="Применять скидки к максимуму (иначе максимум остается вне зависимости от наличия скидки)"
           name="apply_discount_max"
           valuePropName="checked"
         >
-          <Switch />
+          <Switch disabled={loading} />
         </Form.Item>
       </Form>
     </Modal>

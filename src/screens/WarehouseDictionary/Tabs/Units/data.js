@@ -19,3 +19,9 @@ export const columns = (options, filters, sorter) => {
 
   return advancedColumns(options, filters, sorter)(data);
 };
+
+export const types = [
+  { name: "Вес", value: "1", unit: "гр" },
+  { name: "Объем", value: "2", unit: "мл" },
+  { name: "Количество", value: "3", unit: "шт" },
+];

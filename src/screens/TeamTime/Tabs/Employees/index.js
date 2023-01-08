@@ -5,7 +5,7 @@ import moment from "moment";
 import _ from "lodash";
 import { Context } from "../..";
 import { useSelector } from "react-redux";
-import ru from "moment/locale/ru";
+import Filters from "@/components/Filters";
 
 const Comp = () => {
   const context = useContext(Context);
@@ -15,14 +15,12 @@ const Comp = () => {
   const [filters, setFilters] = useState(null);
   const [pagination, setPagination] = useState(null);
   const [sorter, setSorter] = useState(null);
-  const start = moment().startOf("week");
-  const end = moment().endOf("week");
-  const [dates, setDates] = useState([start, end]);
 
   const form = useRef();
 
   const places = useSelector((state) => state.app.places || []);
   const schedules = useSelector((state) => state.app.schedules || []);
+  const date = useSelector((state) => state.app.date);
 
   const items = _.groupBy(schedules, (o) => o.user.name);
 
@@ -33,12 +31,12 @@ const Comp = () => {
   }, [dataFilters]);
 
   useEffect(() => {
-    let fromDate = moment().startOf("week");
-    let toDate = moment().endOf("week");
-    let days = toDate.diff(fromDate, "days");
+    const start = moment(date).startOf("week");
+    const end = moment(date).endOf("week");
+    let days = end.diff(start, "days");
     let dates = [];
     for (let i = 0; i <= days; i++) {
-      const day = moment(fromDate).add(i, "days");
+      const day = moment(start).add(i, "days");
       const date = day.format("YYYY-MM-DD");
       dates.push({
         title: day.format("DD.MM dd").toUpperCase(),
@@ -121,32 +119,9 @@ const Comp = () => {
     setDataFilters(values);
   };
 
-  const disabledDate = (current) => {
-    if (!dates) return false;
-    const [start, end] = dates;
-
-    const tooLate = start && current.diff(start, "days") > 7;
-    const tooEarly = end && end.diff(current, "days") > 7;
-    return !!tooEarly || !!tooLate;
-  };
-
-  const onOpenChange = (open) => {
-    if (open) setDates([null, null]);
-  };
-
-  const onCalendarChange = (val) => {
-    if (val) setDates(val);
-    else setDates([start, end]);
-  };
-
   return (
     <>
-      <Form
-        style={{ marginBottom: 16 }}
-        ref={form}
-        layout="inline"
-        onFinish={onFinish}
-      >
+      <Filters ref={form} onFinish={onFinish}>
         <Form.Item name="place">
           <Select
             allowClear
@@ -168,7 +143,7 @@ const Comp = () => {
             Поиск
           </Button>
         </Form.Item>
-      </Form>
+      </Filters>
       <Table
         columns={columns(options, filters, sorter)}
         pagination={pagination}

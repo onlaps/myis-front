@@ -14,16 +14,16 @@ const { confirm } = Modal;
 
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
-  const [pagination, setPagination] = useState(null);
-  const [filters, setFilters] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [filters, setFilters] = useState(null);
+  // const [sorter, setSorter] = useState(null);
   const [editing, setEditing] = useState(null);
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
@@ -47,7 +47,7 @@ const Screen = (props) => {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDelete = async (id) => {
     try {
@@ -68,7 +68,7 @@ const Screen = (props) => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },
@@ -147,8 +147,8 @@ const Screen = (props) => {
           />
           <Content className="main__content__layout">
             <Table
-              columns={columns(options, filters, sorter)}
-              onChange={onChange}
+              columns={columns(options)}
+              // onChange={onChange}
               pagination={false}
               rowKey="_id"
               dataSource={salaries}

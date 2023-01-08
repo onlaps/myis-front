@@ -4,14 +4,14 @@ export const columns = (options, filters, sorter) => {
   const data = [
     {
       title: "Дата создания",
-      dataIndex: "created_at",
+      dataIndex: "createdAt",
     },
     {
-      dataIndex: "user",
+      dataIndex: ["user", "name"],
       title: "Автор",
     },
     {
-      dataIndex: "discount",
+      dataIndex: ["discount", "name"],
       title: "Скидка",
     },
     {

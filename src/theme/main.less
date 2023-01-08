@@ -6,10 +6,24 @@
   height: 100%;
 }
 
-.ant-layout {
-  background-color: #eff3f6 !important;
+.main__wrapper {
+  margin-left: 280px;
+  &.no-margin {
+    margin-left: 0 !important;
+  }
 }
 
 .main__content__layout {
   padding: 20px 50px 100px 50px;
+  overflow-y: scroll;
+}
+
+.uploader {
+  height: 200px !important;
+}
+
+.image-preview {
+  height: 200px;
+  width: 100%;
+  object-fit: cover;
 }

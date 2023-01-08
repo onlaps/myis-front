@@ -4,7 +4,7 @@ export const columns = (options, filters, sorter) => {
   const data = [
     {
       title: "Сотрудник",
-      dataIndex: "employee",
+      dataIndex: "user",
     },
     {
       title: "Дата",
@@ -15,22 +15,26 @@ export const columns = (options, filters, sorter) => {
       dataIndex: "time",
     },
     {
-      title: "Документ",
-      dataIndex: "summ",
-    },
-    {
       title: "Позиции",
-      dataIndex: "position",
+      dataIndex: "items",
     },
     {
       title: "Сумма",
-      dataIndex: "summ",
+      dataIndex: "total",
     },
     {
       title: "Комментарий",
       dataIndex: "description",
     },
+    {
+      dataIndex: "actions",
+    },
   ];
 
   return advancedColumns(options, filters, sorter)(data);
 };
+
+export const types = [
+  { name: "Оплата наличными", value: "1" },
+  { name: "Безналичная оплата", value: "2" },
+];

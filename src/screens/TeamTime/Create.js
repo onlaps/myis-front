@@ -79,7 +79,7 @@ const Comp = (props) => {
     confirm({
       title: "Вы уверены?",
       icon: <ExclamationCircleOutlined />,
-      content: "Данное действо невозможно отменить!",
+      content: "Данное действие невозможно отменить!",
       async onOk() {
         const id = editing._id;
         try {

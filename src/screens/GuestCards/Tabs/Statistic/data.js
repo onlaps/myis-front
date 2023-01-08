@@ -4,11 +4,11 @@ export const columns = (options, filters, sorter) => {
   const data = [
     {
       title: "Торговая точка",
-      dataIndex: "place",
+      dataIndex: "name",
     },
     {
       title: "Количество",
-      dataIndex: "total",
+      dataIndex: "guests",
     },
   ];
 

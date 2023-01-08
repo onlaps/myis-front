@@ -6,23 +6,22 @@ import moment from "moment";
 import _ from "lodash";
 import { Context } from "../..";
 import { useSelector } from "react-redux";
+import Filters from "@/components/Filters";
 
 const Comp = () => {
   const context = useContext(Context);
   const { loading, setEditing, setAdding, setDataFilters, dataFilters } =
     context;
   const [days, setDays] = useState({});
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
-  const start = moment().startOf("week");
-  const end = moment().endOf("week");
-  const [dates, setDates] = useState([start, end]);
+  // const [filters, setFilters] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [sorter, setSorter] = useState(null);
 
   const form = useRef();
 
   const places = useSelector((state) => state.app.places || []);
   const schedules = useSelector((state) => state.app.schedules || []);
+  const date = useSelector((state) => state.app.date);
 
   const items = _.groupBy(schedules, "shift_number");
 
@@ -34,7 +33,8 @@ const Comp = () => {
   }, [dataFilters]);
 
   useEffect(() => {
-    const [start, end] = dates;
+    const start = moment(date).startOf("week");
+    const end = moment(date).endOf("week");
     let days = end.diff(start, "days");
     let $dates = [];
     for (let i = 0; i <= days; i++) {
@@ -86,7 +86,7 @@ const Comp = () => {
       });
     }
     setDays($dates);
-  }, [schedules]);
+  }, [schedules]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getDays = () => {
     const $days = {};
@@ -95,11 +95,11 @@ const Comp = () => {
     return $days;
   };
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
 
   const options = {
     shift_number: {
@@ -123,12 +123,7 @@ const Comp = () => {
 
   return (
     <>
-      <Form
-        style={{ marginBottom: 16 }}
-        ref={form}
-        layout="inline"
-        onFinish={onFinish}
-      >
+      <Filters ref={form} onFinish={onFinish}>
         <Form.Item name="place">
           <Select
             allowClear
@@ -150,11 +145,10 @@ const Comp = () => {
             Поиск
           </Button>
         </Form.Item>
-      </Form>
+      </Filters>
       <Table
-        columns={columns(options, filters, sorter)}
-        pagination={pagination}
-        onChange={onChange}
+        columns={columns(options)}
+        pagination={null}
         loading={loading}
         dataSource={Object.keys(items).map((key) => ({
           key,

@@ -47,6 +47,10 @@ export default (state = INITIAL_STATE, action) => {
         .getIn(action.path)
         .filter((o) => o.get(action.key) !== action.value);
       return newState.setIn(action.path, $var).toJS();
+    case "REMOVE_APP_BY_VALUE":
+      newState = Immutable.fromJS(state);
+      $var = newState.getIn(action.path).filter((o) => o !== action.value);
+      return newState.setIn(action.path, $var).toJS();
     case "INIT":
       return { ...INITIAL_STATE };
     default:

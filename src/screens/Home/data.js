@@ -20,7 +20,7 @@ export const columns = [
     ],
   },
   {
-    title: "За месяц",
+    title: "С начала месяца",
     children: [
       {
         key: "sum",

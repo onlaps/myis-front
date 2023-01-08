@@ -1,6 +1,7 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { Button, Layout, PageHeader, Tabs } from "antd";
 import { Groups, Units, Reasons } from "./Tabs";
+import Create from "./Create";
 
 const { Content } = Layout;
 const { TabPane } = Tabs;
@@ -10,25 +11,33 @@ export const Context = createContext();
 const Screen = (props) => {
   const [activeKey, setActiveKey] = useState("1");
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   const onTabClick = (activeKey) => {
     setActiveKey(activeKey);
     setAdding(false);
   };
 
+  useEffect(() => {
+    if (!adding) setEditing(null);
+  }, [adding]);
+
   return (
-    <Layout>
-      <PageHeader
-        title="Справочники"
-        ghost={false}
-        extra={[
-          <Button key="create" type="primary" onClick={() => setAdding(true)}>
-            Создать
-          </Button>,
-        ]}
-      />
-      <Content className="main__content__layout">
-        <Context.Provider value={{ adding, activeKey, setAdding }}>
+    <Context.Provider
+      value={{ adding, setAdding, activeKey, editing, setEditing }}
+    >
+      <Create />
+      <Layout>
+        <PageHeader
+          title="Справочники"
+          ghost={false}
+          extra={[
+            <Button key="create" type="primary" onClick={() => setAdding(true)}>
+              Создать
+            </Button>,
+          ]}
+        />
+        <Content className="main__content__layout">
           <Tabs onTabClick={onTabClick} activeKey={activeKey}>
             <TabPane tab="Группы товаров" key="1">
               <Groups />
@@ -40,9 +49,9 @@ const Screen = (props) => {
               <Reasons />
             </TabPane>
           </Tabs>
-        </Context.Provider>
-      </Content>
-    </Layout>
+        </Content>
+      </Layout>
+    </Context.Provider>
   );
 };
 

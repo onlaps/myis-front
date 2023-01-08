@@ -49,7 +49,7 @@ const Screen = (props) => {
   const getAccesses = async () => {
     try {
       setLoading(true);
-      const { data } = await dispatch(call({ url: "roles/accesses" }));
+      const { data } = await dispatch(call({ url: "accesses" }));
       dispatch(SET_APP(["accesses"], data));
       setLoading(false);
     } catch (e) {
@@ -65,7 +65,7 @@ const Screen = (props) => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },

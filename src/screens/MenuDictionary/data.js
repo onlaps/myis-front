@@ -7,7 +7,7 @@ export const columns = (options, filters, sorter) => {
       title: "Название",
     },
     {
-      dataIndex: "total",
+      dataIndex: "positions",
       title: "Позиции меню",
     },
     {

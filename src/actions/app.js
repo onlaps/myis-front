@@ -30,3 +30,8 @@ export const REMOVE_APP_BY_PARAM = (path, key, value) => ({
   key,
   value,
 });
+export const REMOVE_APP_BY_VALUE = (path, value) => ({
+  type: "REMOVE_APP_BY_VALUE",
+  path,
+  value,
+});

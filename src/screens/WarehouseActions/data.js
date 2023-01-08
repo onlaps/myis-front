@@ -3,19 +3,23 @@ import { advancedColumns } from "@/utils";
 export const columns = (options, filters, sorter) => {
   const data = [
     {
-      dataIndex: "createdAt",
+      dataIndex: "date",
       title: "Дата",
     },
     {
-      dataIndex: "type",
-      title: "Тип",
-    },
-    {
-      dataIndex: "price",
-      title: "Сумма",
+      dataIndex: "action",
+      title: "Тип движения",
     },
     {
       dataIndex: "total",
+      title: "Сумма",
+    },
+    {
+      dataIndex: "place",
+      title: "Торговая точка",
+    },
+    {
+      dataIndex: "items",
       title: "Позиции",
     },
     {
@@ -31,3 +35,8 @@ export const columns = (options, filters, sorter) => {
 
   return advancedColumns(options, filters, sorter)(data);
 };
+
+export const types = [
+  { name: "Оплата наличными", value: "1" },
+  { name: "Безналичная оплата", value: "2" },
+];

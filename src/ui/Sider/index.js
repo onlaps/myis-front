@@ -21,7 +21,7 @@ const getItem = (label, key, icon, children, type) => ({
 
 const items = [
   getItem("Главная", "/", <HomeOutlined />),
-  getItem("Экран кассира", "/cashier", <DesktopOutlined />),
+  getItem("Экран кассира", "/cashier-select", <DesktopOutlined />),
   getItem("Гости и акции", "/guests", <ContactsOutlined />, [
     getItem("Карта гостя", "/guests-cards"),
     getItem("Бронирование", "/guests-booking"),
@@ -31,6 +31,7 @@ const items = [
     getItem("График работы", "/team-time"),
     getItem("Ставки по зарплате", "/team-salary"),
     getItem("Расчет зарплаты", "/team-payroll"),
+    getItem("Чек-листы смен", "/team-checklists"),
   ]),
   getItem("Финансы", "/finance", <DollarOutlined />, [
     getItem("История смен", "/finance-shifts"),
@@ -100,6 +101,7 @@ const Comp = () => {
       width={280}
       collapsed={collapsed}
       onCollapse={(v) => setCollapsed(v)}
+      className="content-slider"
       collapsible
     >
       <div className="logo" onClick={() => navigate("/")} />

@@ -5,7 +5,6 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch } from "react-redux";
-import _ from "lodash";
 
 const { Title } = Typography;
 

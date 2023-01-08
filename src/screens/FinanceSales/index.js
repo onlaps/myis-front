@@ -33,7 +33,7 @@ const Comp = () => {
           onFinish={onFinish}
         >
           <Form.Item name="place">
-            <Select style={{ width: "100%" }} placeholder="Все торговые точки">
+            <Select style={{ width: 200 }} placeholder="Все торговые точки">
               <Select.Option value="demo">Demo</Select.Option>
             </Select>
           </Form.Item>

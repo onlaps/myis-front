@@ -11,6 +11,7 @@ export const Context = createContext();
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
   const [activeKey, setActiveKey] = useState("1");
+  const [editing, setEditing] = useState(null);
 
   const onTabClick = (activeKey) => {
     setActiveKey(activeKey);
@@ -18,7 +19,9 @@ const Screen = (props) => {
   };
 
   return (
-    <Context.Provider value={{ adding, setAdding, activeKey }}>
+    <Context.Provider
+      value={{ adding, setAdding, activeKey, editing, setEditing }}
+    >
       <Create />
       <Layout>
         <PageHeader

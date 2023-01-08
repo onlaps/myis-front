@@ -1,8 +1,15 @@
-import React, { useContext, useRef, useState } from "react";
-import { Button, Form, Input, Modal, Select, Space } from "antd";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Button, Form, Input, InputNumber } from "antd";
+import { Modal, notification, Select, Space } from "antd";
 import { Row, Col, DatePicker, Typography } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { Context } from ".";
+import { call } from "@/actions/axios";
+import { PUSH_APP } from "@/actions/app";
+import { useDispatch, useSelector } from "react-redux";
+import moment from "moment";
+import { types } from "./data";
+import _ from "lodash";
 
 const { Title } = Typography;
 
@@ -12,6 +19,98 @@ const Comp = (props) => {
   const [loading, setLoading] = useState(false);
   const form = useRef();
 
+  const dispatch = useDispatch();
+
+  const places = useSelector((state) => state.app.places);
+  const wh_items = useSelector((state) => state.app.wh_items);
+  const wh_units = useSelector((state) => state.app.wh_units || []);
+
+  useEffect(() => {
+    if (form.current && !type) {
+      form.current.resetFields();
+    }
+  }, [type]);
+
+  const onSubmit = async () => {
+    const values = await form.current.validateFields();
+
+    if (!values.items || values.items.length === 0) {
+      return notification.warn({
+        message: "Отсутствуют позиции",
+        description: "Добавьте позиции для сохранения",
+      });
+    }
+
+    const date = moment(values.date).format("YYYY-MM-DD");
+    const time = moment(values.date).format("HH:mm");
+
+    values.date = date;
+    values.time = time;
+
+    try {
+      setLoading(true);
+      const { data } = await dispatch(
+        call({
+          url: `wh_actions`,
+          method: "POST",
+          data: { ...values, action: "in" },
+        })
+      );
+      dispatch(PUSH_APP(["wh_actions"], data));
+      setType(null);
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
+
+  const onFieldsChange = (field, fields) => {
+    const [f] = field;
+    const [arr, index, name] = f.name;
+
+    if (["price", "total", "amount"].indexOf(name) !== -1) {
+      let items;
+      if (index !== -1) {
+        const values = form.current.getFieldsValue();
+        items = [...values.items];
+      }
+      if (name === "price") {
+        const amount = _.find(fields, (o) => {
+          const name = _.last(o.name);
+          return name === "amount";
+        });
+        const total = amount.value * f.value;
+        if (_.isNumber(total) && items) {
+          items[index].total = total;
+
+          form.current.setFieldsValue({ items });
+        }
+      } else if (name === "amount") {
+        const price = _.find(fields, (o) => {
+          const name = _.last(o.name);
+          return name === "price";
+        });
+        const total = price.value * f.value;
+        if (_.isNumber(total) && items) {
+          items[index].total = total;
+
+          form.current.setFieldsValue({ items });
+        }
+      } else if (name === "total") {
+        const amount = _.find(fields, (o) => {
+          const name = _.last(o.name);
+          return name === "amount";
+        });
+        const price = f.value / amount.value;
+        if (_.isNumber(price) && items) {
+          items[index].price = price.toFixed(2);
+
+          form.current.setFieldsValue({ items });
+        }
+      }
+    }
+  };
+
   return (
     <Modal
       title="Поступление"
@@ -19,8 +118,15 @@ const Comp = (props) => {
       okText="Сохранить"
       onCancel={() => setType(null)}
       width={1000}
+      onOk={onSubmit}
+      okButtonProps={{ loading }}
     >
-      <Form layout="vertical" ref={form}>
+      <Form
+        layout="vertical"
+        ref={form}
+        initialValues={{ type: "1", place: places && places[0]?._id }}
+        onFieldsChange={onFieldsChange}
+      >
         <Title level={5}>Редактирование</Title>
         <Row gutter={20}>
           <Col span={6}>
@@ -29,8 +135,13 @@ const Comp = (props) => {
               name="place"
               rules={[{ required: true, message: "Данное поле обязательно" }]}
             >
-              <Select>
-                <Select.Option value="test">test</Select.Option>
+              <Select placeholder="Выберите из списка" disabled={loading}>
+                {places &&
+                  places.map((v) => (
+                    <Select.Option key={v._id} value={v._id}>
+                      {v.name}
+                    </Select.Option>
+                  ))}
               </Select>
             </Form.Item>
           </Col>
@@ -54,8 +165,13 @@ const Comp = (props) => {
               name="type"
               rules={[{ required: true, message: "Данное поле обязательно" }]}
             >
-              <Select>
-                <Select.Option value="test">test</Select.Option>
+              <Select placeholder="Выберите из списка" disabled={loading}>
+                {types &&
+                  types.map((v) => (
+                    <Select.Option key={v.value} value={v.value}>
+                      {v.name}
+                    </Select.Option>
+                  ))}
               </Select>
             </Form.Item>
           </Col>
@@ -68,7 +184,7 @@ const Comp = (props) => {
         <Row>
           <Col span={24}>
             <Title level={5}>Позиции документа</Title>
-            <Form.List name="positions">
+            <Form.List name="items">
               {(fields, { add, remove }) => (
                 <>
                   {fields.map((field, index) => (
@@ -77,9 +193,9 @@ const Comp = (props) => {
                         <Space align="end">
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} product`}
+                            key={`${index} ${field.key} wh_item`}
                             label="Товар"
-                            name={[field.name, "product"]}
+                            name={[field.name, "wh_item"]}
                             rules={[
                               {
                                 required: true,
@@ -87,8 +203,16 @@ const Comp = (props) => {
                               },
                             ]}
                           >
-                            <Select style={{ width: 130 }}>
-                              <Select.Option value="test">test</Select.Option>
+                            <Select
+                              style={{ width: 130 }}
+                              placeholder="Выберите из списка"
+                              disabled={loading}
+                            >
+                              {wh_items.map((v) => (
+                                <Select.Option key={v._id} value={v._id}>
+                                  {v.name}
+                                </Select.Option>
+                              ))}
                             </Select>
                           </Form.Item>
                           <Form.Item
@@ -103,13 +227,16 @@ const Comp = (props) => {
                               },
                             ]}
                           >
-                            <Input />
+                            <InputNumber
+                              style={{ width: "100%" }}
+                              disabled={loading}
+                            />
                           </Form.Item>
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} value`}
+                            key={`${index} ${field.key} type`}
                             label="Единица"
-                            name={[field.name, "value"]}
+                            name={[field.name, "type"]}
                             rules={[
                               {
                                 required: true,
@@ -117,8 +244,17 @@ const Comp = (props) => {
                               },
                             ]}
                           >
-                            <Select style={{ width: 130 }}>
-                              <Select.Option value="test">test</Select.Option>
+                            <Select
+                              style={{ width: 130 }}
+                              placeholder="Выберите из списка"
+                              disabled={loading}
+                            >
+                              {wh_units &&
+                                wh_units.map((v) => (
+                                  <Select.Option key={v._id} value={v._id}>
+                                    {v.name}
+                                  </Select.Option>
+                                ))}
                             </Select>
                           </Form.Item>
                           <Form.Item
@@ -133,19 +269,32 @@ const Comp = (props) => {
                               },
                             ]}
                           >
-                            <Input />
+                            <InputNumber
+                              style={{ width: "100%" }}
+                              disabled={loading}
+                            />
                           </Form.Item>
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} sum`}
+                            key={`${index} ${field.key} total`}
                             label="Сумма"
-                            name={[field.name, "sum"]}
+                            name={[field.name, "total"]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Обязательно",
+                              },
+                            ]}
                           >
-                            <Input />
+                            <InputNumber
+                              style={{ width: "100%" }}
+                              disabled={loading}
+                            />
                           </Form.Item>
                           <Form.Item label=" " {...field}>
                             <MinusCircleOutlined
                               onClick={() => remove(field.name)}
+                              disabled={loading}
                             />
                           </Form.Item>
                         </Space>
@@ -158,6 +307,7 @@ const Comp = (props) => {
                       type="primary"
                       onClick={() => add()}
                       icon={<PlusOutlined />}
+                      disabled={loading}
                     >
                       Добавить позицию
                     </Button>

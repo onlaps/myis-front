@@ -4,7 +4,7 @@ import { Shifts, Employees } from "./Tabs";
 import Create from "./Create";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import queryString from "query-string";
 
 const { Content } = Layout;
@@ -12,7 +12,7 @@ const { TabPane } = Tabs;
 
 export const Context = createContext();
 
-const Screen = (props) => {
+const Screen = () => {
   const [activeKey, setActiveKey] = useState("1");
   const [editing, setEditing] = useState(null);
   const [adding, setAdding] = useState(false);
@@ -29,7 +29,7 @@ const Screen = (props) => {
   useEffect(() => {
     if (!adding) setEditing(null);
     getData();
-  }, [adding]);
+  }, [adding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getUsers = async () => {
     try {
@@ -61,7 +61,7 @@ const Screen = (props) => {
     getUsers();
     getPlaces();
     getData();
-  }, [dataFilters]);
+  }, [dataFilters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Layout>

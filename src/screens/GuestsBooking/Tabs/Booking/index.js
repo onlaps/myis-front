@@ -7,6 +7,7 @@ import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
+import Filters from "@/components/Filters";
 import { Context } from "../..";
 import _ from "lodash";
 import moment from "moment";
@@ -15,17 +16,17 @@ const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
-  const { setAdding, setEditing } = context;
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  const { setAdding, setEditing, activeKey } = context;
+  // const [filters, setFilters] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
 
   const dispatch = useDispatch();
 
@@ -34,8 +35,10 @@ const Comp = () => {
   const places = useSelector((state) => state.app.places || []);
 
   useEffect(() => {
-    getData();
-  }, []);
+    if (activeKey === "1") {
+      getData();
+    }
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onFinish = async () => {
     getData();
@@ -73,7 +76,7 @@ const Comp = () => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },
@@ -123,7 +126,8 @@ const Comp = () => {
     },
     time: {
       render: (_, item) => {
-        return `${item.time_from} - ${item.time_to}`;
+        const date = moment(item.date).format("DD.MM.YYYY");
+        return `${date}, ${item.time_from} - ${item.time_to}`;
       },
     },
     createdAt: {
@@ -150,12 +154,7 @@ const Comp = () => {
 
   return (
     <>
-      <Form
-        style={{ marginBottom: 16 }}
-        ref={form}
-        layout="inline"
-        onFinish={onFinish}
-      >
+      <Filters ref={form} onFinish={onFinish}>
         <Form.Item name="place">
           <Select style={{ width: 200 }} placeholder="Выберите из списка">
             {places.map((v) => (
@@ -166,17 +165,17 @@ const Comp = () => {
           </Select>
         </Form.Item>
         <Form.Item name="date">
-          <DatePicker format="DD.MM.YYYY" />
+          <DatePicker format="DD.MM.YYYY" allowClear={false} />
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">
             Поиск
           </Button>
         </Form.Item>
-      </Form>
+      </Filters>
       <Table
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
+        // onChange={onChange}
         rowKey="_id"
         dataSource={books}
         loading={loading}

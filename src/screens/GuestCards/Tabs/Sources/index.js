@@ -11,16 +11,16 @@ const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
-  const { adding, setAdding, setEditing } = context;
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  const { adding, setAdding, setEditing, activeKey } = context;
+  // const [filters, setFilters] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [sorter, setSorter] = useState(null);
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
@@ -29,7 +29,7 @@ const Comp = () => {
 
   useEffect(() => {
     if (!adding) setEditing(null);
-  }, [adding]);
+  }, [adding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getData = async () => {
     try {
@@ -43,8 +43,10 @@ const Comp = () => {
   };
 
   useEffect(() => {
-    getData();
-  }, []);
+    if (activeKey === "2") {
+      getData();
+    }
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDelete = async (id) => {
     try {
@@ -65,7 +67,7 @@ const Comp = () => {
       confirm({
         title: "Вы уверены?",
         icon: <ExclamationCircleOutlined />,
-        content: "Данное действо невозможно отменить!",
+        content: "Данное действие невозможно отменить!",
         onOk() {
           onDelete(item._id);
         },
@@ -107,8 +109,8 @@ const Comp = () => {
   return (
     <>
       <Table
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
+        // onChange={onChange}
         rowKey="_id"
         dataSource={sources}
         loading={loading}
