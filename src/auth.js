@@ -8,6 +8,7 @@ import classNames from "classnames";
 export const withAuth = (Item) => {
   const Component = (props) => {
     const user = useSelector((state) => state.app.user);
+    const collapsed = useSelector((state) => state.app.collapsed);
     const location = useLocation();
 
     const path = location.pathname.split("/");
@@ -22,7 +23,11 @@ export const withAuth = (Item) => {
 
     return (
       <Layout
-        className={classNames({ main__wrapper: true, "no-margin": isCashier })}
+        className={classNames({
+          main__wrapper: true,
+          "no-margin": isCashier,
+          "sm-margin": collapsed,
+        })}
       >
         {authenticated()}
         <Layout>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Layout, Menu } from "antd";
 import { HomeOutlined, DesktopOutlined } from "@ant-design/icons";
@@ -6,8 +6,9 @@ import { ContactsOutlined, ExportOutlined } from "@ant-design/icons";
 import { TeamOutlined, DollarOutlined } from "@ant-design/icons";
 import { FileMarkdownOutlined, SettingOutlined } from "@ant-design/icons";
 import { ContainerOutlined, BarChartOutlined } from "@ant-design/icons";
-import { LOGOUT } from "@/actions/app";
+import { LOGOUT, SET_APP } from "@/actions/app";
 import "./index.less";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Sider } = Layout;
 
@@ -69,7 +70,9 @@ const items = [
 const Comp = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(false);
+
+  const dispatch = useDispatch();
+  const collapsed = useSelector((state) => state.app.collapsed || false);
 
   const path = pathname.split("/")[1];
 
@@ -96,15 +99,19 @@ const Comp = () => {
     }
   }
 
+  const onCollapse = (v) => {
+    dispatch(SET_APP(["collapsed"], v));
+  };
+
   return (
     <Sider
       width={280}
       collapsed={collapsed}
-      onCollapse={(v) => setCollapsed(v)}
+      onCollapse={onCollapse}
       className="content-slider"
       collapsible
     >
-      <div className="logo" onClick={() => navigate("/")} />
+      {!collapsed && <div className="logo" onClick={() => navigate("/")} />}
       <Menu
         theme="dark"
         selectedKeys={"/" + path}
