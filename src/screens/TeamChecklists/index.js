@@ -1,5 +1,6 @@
 import React, { useState, createContext, useEffect } from "react";
-import { Layout, PageHeader, Tabs, Button } from "antd";
+import { Layout, Tabs, Button } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Checklists, Groups } from "./Tabs";
 import Create from "./Create";
 
@@ -20,6 +21,19 @@ const Screen = (props) => {
     if (!adding) setEditing(null);
   }, [adding]);
 
+  const items = [
+    {
+      key: "1",
+      label: "Чек-листы",
+      children: <Checklists />,
+    },
+    {
+      key: "2",
+      label: "Группы",
+      children: <Groups />,
+    },
+  ];
+
   return (
     <Context.Provider
       value={{ adding, setAdding, activeKey, editing, setEditing }}
@@ -36,14 +50,7 @@ const Screen = (props) => {
           ]}
         />
         <Content className="main__content__layout">
-          <Tabs onTabClick={onTabClick} activeKey={activeKey}>
-            <TabPane tab="Чек-листы" key="1">
-              <Checklists />
-            </TabPane>
-            <TabPane tab="Группы" key="2">
-              <Groups />
-            </TabPane>
-          </Tabs>
+          <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
         </Content>
       </Layout>
     </Context.Provider>

@@ -5,6 +5,7 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch } from "react-redux";
+import { types } from "./data";
 
 const { Title } = Typography;
 
@@ -21,7 +22,6 @@ const Comp = (props) => {
       form.current.resetFields();
     }
     if (editing) {
-      console.log(editing);
       form.current.setFieldsValue(editing);
     }
   }, [editing]);
@@ -54,10 +54,11 @@ const Comp = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
@@ -76,14 +77,11 @@ const Comp = (props) => {
         </Form.Item>
         <Form.Item label="Способ расчета" name="type">
           <Select disabled={loading}>
-            <Select.Option value="0">Без процента</Select.Option>
-            <Select.Option value="1">От всей выручки</Select.Option>
-            <Select.Option value="2">От всей выручки сверх плана</Select.Option>
-
-            <Select.Option value="3">
-              Отдельно выручки на блюда(тех карты) и товары на продажу сверх
-              плана
-            </Select.Option>
+            {types.map((v) => (
+              <Select.Option key={v.value} value={v.value}>
+                {v.text}
+              </Select.Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item noStyle shouldUpdate={(pv, cv) => pv.type !== cv.type}>

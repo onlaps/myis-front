@@ -1,10 +1,11 @@
 import React, { useState, createContext } from "react";
-import { Layout, PageHeader, Tabs, Button } from "antd";
+import { Layout, Tabs, Button } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Expenses, Categories } from "./Tabs";
 import Create from "./Create";
+import { useEffect } from "react";
 
 const { Content } = Layout;
-const { TabPane } = Tabs;
 
 export const Context = createContext();
 
@@ -17,6 +18,23 @@ const Screen = (props) => {
     setActiveKey(activeKey);
     setAdding(false);
   };
+
+  useEffect(() => {
+    if (!adding) setEditing(null);
+  }, [adding]);
+
+  const items = [
+    {
+      key: "1",
+      label: "Расходы",
+      children: <Expenses />,
+    },
+    {
+      key: "2",
+      label: "Категория расходов",
+      children: <Categories />,
+    },
+  ];
 
   return (
     <Context.Provider
@@ -34,14 +52,7 @@ const Screen = (props) => {
           ]}
         />
         <Content className="main__content__layout">
-          <Tabs onTabClick={onTabClick} activeKey={activeKey}>
-            <TabPane tab="Расходы" key="1">
-              <Expenses />
-            </TabPane>
-            <TabPane tab="Категория расходов" key="2">
-              <Categories />
-            </TabPane>
-          </Tabs>
+          <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
         </Content>
       </Layout>
     </Context.Provider>

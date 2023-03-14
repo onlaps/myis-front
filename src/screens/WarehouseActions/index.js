@@ -1,17 +1,20 @@
 import React, { createContext, useEffect, useRef, useState } from "react";
-import { Layout, Button, PageHeader, Table } from "antd";
-import { Dropdown, Menu, Modal, Popover } from "antd";
+import { Layout, Button, Table } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
+import { Dropdown, Modal, Popover } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Form, Select, DatePicker } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
-import moment from "moment";
+import { GET_PLACES } from "@/actions/api";
+import dayjs from "dayjs";
 import In from "./In";
 import Out from "./Out";
 import Move from "./Move";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
+import Filters from "@/components/Filters";
 import _ from "lodash";
 
 const { RangePicker } = DatePicker;
@@ -22,11 +25,16 @@ export const Context = createContext();
 
 const Screen = (props) => {
   const form = useRef();
+  const [type, setType] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    total: 10,
+  });
   const [filters, setFilters] = useState(null);
   const [sorter, setSorter] = useState(null);
-  const [type, setType] = useState(null);
 
   const onChange = (pagination, filters, sorter) => {
+    setPagination(pagination);
     setFilters(filters);
     setSorter({ [sorter.field]: sorter.order });
   };
@@ -43,14 +51,17 @@ const Screen = (props) => {
     try {
       setLoading(true);
       const values = await form.current.validateFields();
+      values.page = pagination.current;
       if (values.period) {
-        values.start_at = moment(values.period[0]).format("YYYY-MM-DD");
-        values.end_at = moment(values.period[1]).format("YYYY-MM-DD");
+        values.start_at = dayjs(values.period[0]).format("YYYY-MM-DD");
+        values.end_at = dayjs(values.period[1]).format("YYYY-MM-DD");
       }
       if (!values.action) values.action = ["in", "out", "move"];
       const query = queryString.stringify(values);
       const { data } = await dispatch(call({ url: `wh_actions?${query}` }));
-      dispatch(SET_APP(["wh_actions"], data));
+      const { data: items, ...p } = data;
+      setPagination(p);
+      dispatch(SET_APP(["wh_actions"], items));
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -64,13 +75,6 @@ const Screen = (props) => {
     } catch (e) {}
   };
 
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
-  };
-
   const getWhItems = async () => {
     try {
       const { data } = await dispatch(call({ url: `wh_items` }));
@@ -79,11 +83,14 @@ const Screen = (props) => {
   };
 
   useEffect(() => {
+    getData();
+  }, [pagination.current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     getWhReasons();
     getWhItems();
-    getPlaces();
-    getData();
-  }, []);
+    dispatch(GET_PLACES());
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDelete = async (id) => {
     try {
@@ -112,23 +119,18 @@ const Screen = (props) => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -136,27 +138,24 @@ const Screen = (props) => {
     },
     date: {
       render: (value, item) => {
-        return moment(`${value} ${item.time}`).format("DD.MM.YYYY HH:mm");
+        return dayjs(`${value} ${item.time}`).format("DD.MM.YYYY HH:mm");
       },
     },
     action: {
-      render: (value) => {
+      render: (value, item) => {
         if (value === "in") return "Поступление";
         else if (value === "out") return "Списание";
-        else if (value === "move") return "Перемещение";
-      },
-    },
-    place: {
-      render: (val, item) => {
-        if (item.action === "move") {
+        else if (value === "move") {
           return (
-            <>
-              <div>{item?.place?.name}</div>
-              <div>{item?.place_to?.name}</div>
-            </>
+            <Popover
+              content={item?.place_to?.name}
+              trigger="hover"
+              placement="bottom"
+            >
+              <Button type="link">Перемещение</Button>
+            </Popover>
           );
         }
-        return val.name;
       },
     },
     total: {
@@ -171,14 +170,32 @@ const Screen = (props) => {
             content={val.map((v) => {
               return (
                 <div key={v._id}>
-                  {v.wh_item.name} ({v.amount} x {v.wh_item.wh_unit.name}) -{" "}
-                  {v.total}
+                  {v.wh_item.name}, {v.wh_item.wh_unit.name} ({v.amount} x{" "}
+                  {v.price}) - {v.total}
                 </div>
               );
             })}
             trigger="hover"
             placement="bottom"
           >
+            <Button type="link">Показать</Button>
+          </Popover>
+        );
+      },
+    },
+    description: {
+      render: (val, item) => {
+        let text = [];
+
+        if (item.reason) text.push(item.reason.name);
+        if (val) text.push(val);
+
+        if (text.length === 0) return null;
+
+        text = text.map((v) => <div>{v}</div>);
+
+        return (
+          <Popover content={text} trigger="hover" placement="bottom">
             <Button type="link">Показать</Button>
           </Popover>
         );
@@ -212,18 +229,9 @@ const Screen = (props) => {
           ]}
         />
         <Content className="main__content__layout">
-          <Form
-            style={{ marginBottom: 16 }}
-            ref={form}
-            layout="inline"
-            onFinish={onFinish}
-          >
+          <Filters ref={form} onFinish={onFinish}>
             <Form.Item name="place">
-              <Select
-                style={{ width: 200 }}
-                placeholder="Все торговые точки"
-                allowClear
-              >
+              <Select style={{ width: 200 }} placeholder="Все торговые точки">
                 {places &&
                   places.map((v) => (
                     <Select.Option key={v._id} value={v._id}>
@@ -233,7 +241,7 @@ const Screen = (props) => {
               </Select>
             </Form.Item>
             <Form.Item name="period">
-              <RangePicker format="DD.MM.YYYY" allowClear />
+              <RangePicker format="DD.MM.YYYY" allowClear={false} />
             </Form.Item>
             <Form.Item name="action">
               <Select
@@ -265,14 +273,14 @@ const Screen = (props) => {
                 Поиск
               </Button>
             </Form.Item>
-          </Form>
+          </Filters>
           <Table
             columns={columns(options, filters, sorter)}
-            onChange={onChange}
-            pagination={false}
             rowKey="_id"
             dataSource={wh_actions}
             loading={loading}
+            pagination={pagination}
+            onChange={onChange}
           />
         </Content>
       </Layout>

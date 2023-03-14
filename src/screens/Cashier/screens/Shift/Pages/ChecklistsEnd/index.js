@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
 import { call } from "@/actions/axios";
 import { SET_APP, PUSH_APP, REMOVE_APP_BY_VALUE } from "@/actions/app";
-import { Card, Row, Col, Checkbox, PageHeader, Radio } from "antd";
-import moment from "moment";
+import { Card, Row, Col, Checkbox, Radio, Empty } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
+import dayjs from "dayjs";
 import _ from "lodash";
 
 const Checklists = () => {
@@ -68,11 +69,21 @@ const Checklists = () => {
     getValues();
   }, []); //eslint-disable-line
 
-  const dow = moment().day();
+  const dow = dayjs().day();
   const day = dow === 0 ? 7 : dow;
-  const date = moment().date();
+  const date = dayjs().date();
+
+  const renderEmpty = () => (
+    <Col span={24}>
+      <Card>
+        <Empty />
+      </Card>
+    </Col>
+  );
 
   const renderChecklists = () => {
+    if (Object.keys(checklists_end).length === 0) return renderEmpty();
+
     return Object.keys(checklists_end).map((key) => {
       const items = checklists_end[key];
       const title = items[0].checklist_category.name;
@@ -93,7 +104,7 @@ const Checklists = () => {
         return (days_of_week || days_of_month) && only_type;
       });
 
-      if (data.length === 0) return null;
+      if (data.length === 0) return renderEmpty();
 
       return (
         <Col span={12} key={key}>
@@ -165,7 +176,7 @@ const Checklists = () => {
   return (
     <>
       <Col span={18}>
-        <PageHeader extra={getSlider()} />
+        <PageHeader extra={getSlider()} style={{ marginBottom: 10 }} />
         <Row gutter={[20, 20]}>{renderChecklists()}</Row>
       </Col>
     </>

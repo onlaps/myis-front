@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown, Table, Menu, Modal } from "antd";
+import { Dropdown, Table, Modal } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,15 +12,6 @@ const { confirm } = Modal;
 const Comp = () => {
   const context = useContext(Context);
   const { adding, setAdding, setEditing, activeKey } = context;
-  // const [filters, setFilters] = useState(null);
-  // const [pagination, setPagination] = useState(null);
-  // const [sorter, setSorter] = useState(null);
-
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
@@ -78,27 +69,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -110,7 +96,6 @@ const Comp = () => {
     <>
       <Table
         columns={columns(options)}
-        // onChange={onChange}
         rowKey="_id"
         dataSource={sources}
         loading={loading}

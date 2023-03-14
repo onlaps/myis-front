@@ -1,14 +1,15 @@
 import React, { useState, useEffect, createContext } from "react";
 import { Col, Card, Table, Button, Popover } from "antd";
-import { Menu, Modal, Dropdown } from "antd";
+import { Modal, Dropdown } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
+import { GET_PLACES } from "@/actions/api";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 import "./index.less";
 import Exp from "./Exp";
 import Out from "./Out";
@@ -20,6 +21,18 @@ const { confirm } = Modal;
 const Expenses = () => {
   const [type, setType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    total: 20,
+  });
+  const [sorter, setSorter] = useState(null);
+
+  const onChange = (pagination, filters, sorter) => {
+    setPagination(pagination);
+    setFilters(filters);
+    setSorter({ [sorter.field]: sorter.order });
+  };
 
   const shift_expenses = useSelector((state) => state.app.shift_expenses || []);
   const current_shift = useSelector((state) => state.app.current_shift);
@@ -29,15 +42,21 @@ const Expenses = () => {
   const getData = async () => {
     try {
       setLoading(true);
-      const query = queryString.stringify({ shift: current_shift._id });
+      const values = { shift: current_shift._id };
+      values.page = pagination.current;
+      const query = queryString.stringify(values);
       const { data: expenses } = await dispatch(
         call({ url: `expenses?${query}` })
       );
+      const { data: exp_items } = expenses;
+
       const { data: wh_actions } = await dispatch(
         call({ url: `wh_actions?${query}` })
       );
+      const { data: items, ...p } = wh_actions;
+      setPagination(p);
 
-      dispatch(SET_APP(["shift_expenses"], [...expenses, ...wh_actions]));
+      dispatch(SET_APP(["shift_expenses"], [...exp_items, ...items]));
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -51,13 +70,6 @@ const Expenses = () => {
     } catch (e) {}
   };
 
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
-  };
-
   const getWhItems = async () => {
     try {
       const { data } = await dispatch(call({ url: `wh_items` }));
@@ -66,9 +78,9 @@ const Expenses = () => {
   };
 
   useEffect(() => {
+    dispatch(GET_PLACES());
     getWhReasons();
     getWhItems();
-    getPlaces();
     getData();
   }, []); //eslint-disable-line
 
@@ -77,6 +89,7 @@ const Expenses = () => {
       setLoading(true);
       let url = `wh_actions/${item._id}`;
       if (!item.action) url = `expenses/${item._id}`;
+      else if (item.action === "sell") url = `orders/${item._id}`;
       await dispatch(call({ url, method: "DELETE" }));
       await getData();
       setLoading(false);
@@ -101,23 +114,18 @@ const Expenses = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -125,7 +133,7 @@ const Expenses = () => {
     },
     date: {
       render: (value, item) => {
-        return moment(`${value} ${item.time}`).format("DD.MM.YYYY HH:mm");
+        return dayjs(`${value} ${item.time}`).format("DD.MM.YYYY HH:mm");
       },
     },
     action: {
@@ -164,19 +172,19 @@ const Expenses = () => {
             return (
               <div key={v._id}>
                 {v.wh_item.name} ({v.amount} x {v.wh_item.wh_unit.name}) -{" "}
-                {v.total} тг
+                {v.total} ₸
               </div>
             );
           } else if (v.expense_category) {
             return (
               <div key={v._id}>
-                {v.expense_category.name} - {v.total} тг
+                {v.expense_category.name} - {v.total} ₸
               </div>
             );
           } else if (v.menu_item) {
             return (
               <div key={v._id}>
-                {v.menu_item.name} ({v.amount} x {v.price}) - {v.total} тг
+                {v.menu_item.name} ({v.amount} x {v.price}) - {v.total} ₸
               </div>
             );
           }
@@ -204,7 +212,7 @@ const Expenses = () => {
         <Card
           className="expenses"
           extra={[
-            <Button key="in" type="primary" onClick={() => setType("in")}>
+            <Button key="exp" type="primary" onClick={() => setType("exp")}>
               Расход
             </Button>,
             <Button key="out" type="primary" onClick={() => setType("out")}>
@@ -216,8 +224,9 @@ const Expenses = () => {
           ]}
         >
           <Table
-            columns={columns(options)}
-            pagination={false}
+            columns={columns(options, filters, sorter)}
+            onChange={onChange}
+            pagination={pagination}
             rowKey="_id"
             dataSource={shift_expenses}
             loading={loading}

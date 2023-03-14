@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/es/integration/react";
 import { BrowserRouter } from "react-router-dom";
@@ -7,14 +7,16 @@ import reportWebVitals from "./reportWebVitals";
 import App from "./App";
 import createAppStore from "./store";
 import { ConfigProvider } from "antd";
-import ruRU from "antd/es/locale/ru_RU";
-import moment from "moment";
-import "moment/locale/ru";
+import ruRU from "antd/locale/ru_RU";
+import dayjs from "dayjs";
+import "dayjs/locale/ru";
 
-moment.locale("ru");
+dayjs.locale("ru");
 export const { persistor, store } = createAppStore();
+const container = document.getElementById("root");
+const root = createRoot(container);
 
-ReactDOM.render(
+root.render(
   <BrowserRouter>
     <Provider store={store}>
       <PersistGate persistor={persistor}>
@@ -23,8 +25,7 @@ ReactDOM.render(
         </ConfigProvider>
       </PersistGate>
     </Provider>
-  </BrowserRouter>,
-  document.getElementById("root")
+  </BrowserRouter>
 );
 
 reportWebVitals();

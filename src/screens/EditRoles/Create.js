@@ -17,12 +17,14 @@ const Comp = (props) => {
 
   useEffect(() => {
     if (form.current) {
-      form.current.resetFields();
+      if (editing) {
+        form.current.setFieldsValue(editing);
+      }
+      if (!adding) {
+        form.current.resetFields();
+      }
     }
-    if (editing) {
-      form.current.setFieldsValue(editing);
-    }
-  }, [editing]);
+  }, [editing, adding]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
@@ -52,11 +54,12 @@ const Comp = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
       okButtonProps={{ loading }}
+      cancelButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
         <Form.Item

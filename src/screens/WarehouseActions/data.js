@@ -15,10 +15,6 @@ export const columns = (options, filters, sorter) => {
       title: "Сумма",
     },
     {
-      dataIndex: "place",
-      title: "Торговая точка",
-    },
-    {
       dataIndex: "items",
       title: "Позиции",
     },

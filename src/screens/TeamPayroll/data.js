@@ -31,7 +31,7 @@ export const columns = (options, filters, sorter) => {
       title: "Аванс",
     },
     {
-      dataIndex: "fix",
+      dataIndex: "fixed_salary",
       title: "Фикс",
     },
     {
@@ -55,29 +55,24 @@ export const columns = (options, filters, sorter) => {
   return advancedColumns(options, filters, sorter)(data);
 };
 
-export const test = [
+export const bonus_types = [
   {
-    key: "1",
-    type: "penalty",
-    date: "2022-07-10",
-    value: "4500",
-    description: "Премя за хорошее поведение",
+    value: "bonus",
+    text: "Бонус",
   },
   {
-    key: "2",
-    type: "bonus",
-    date: "2022-07-10",
-    value: "-3000",
-    description: "Плохое поведение",
+    value: "penalty",
+    text: "Штраф",
   },
 ];
 
 export const historyColumns = (options) => {
   const data = [
-    { dataIndex: "type" },
-    { dataIndex: "date" },
-    { dataIndex: "value" },
-    { dataIndex: "description" },
+    { dataIndex: "createdAt", title: "Дата создания" },
+    { dataIndex: "type", title: "Тип" },
+    { dataIndex: "date", title: "Период" },
+    { dataIndex: "value", title: "Размер" },
+    { dataIndex: "description", title: "Описание" },
     { dataIndex: "actions" },
   ];
   return advancedColumns(options)(data);

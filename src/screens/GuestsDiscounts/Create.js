@@ -2,13 +2,13 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Checkbox, Form, Input, InputNumber } from "antd";
 import { Modal, Select, Switch } from "antd";
 import { Typography, DatePicker, Row, Col, TimePicker } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import { types, discount_types } from "./Tabs/Discounts/data";
-import { menu_types, client_types } from "./Tabs/Discounts/data";
+import { menu_types } from "./Tabs/Discounts/data";
 import _ from "lodash";
 
 const { Title } = Typography;
@@ -37,36 +37,37 @@ const Discount = (props) => {
 
   useEffect(() => {
     if (form.current) {
-      form.current.resetFields();
-    }
-    if (editing) {
-      const values = { ...editing };
-      let hour, minute;
-      [hour, minute] = values.time_from.split(":");
-      const time_from = moment().set({ hour, minute });
-      values.time_from = time_from;
-      [hour, minute] = values.time_to.split(":");
-      const time_to = moment().set({ hour, minute });
-      values.time_to = time_to;
-      if (!_.isEmpty(values.places)) {
-        values.places = values.places.map((v) => v._id);
+      if (editing) {
+        const values = { ...editing };
+        let hour, minute;
+        [hour, minute] = values.time_from.split(":");
+        const time_from = dayjs().hour(hour).minute(minute);
+        values.time_from = time_from;
+        [hour, minute] = values.time_to.split(":");
+        const time_to = dayjs().hour(hour).minute(minute);
+        values.time_to = time_to;
+        if (!_.isEmpty(values.places)) {
+          values.places = values.places.map((v) => v._id);
+        }
+        if (!_.isEmpty(values.menu_categories)) {
+          values.menu_categories = values.menu_categories.map((v) => v._id);
+        }
+        form.current.setFieldsValue(values);
       }
-      if (!_.isEmpty(values.menu_categories)) {
-        values.menu_categories = values.menu_categories.map((v) => v._id);
-      }
-      form.current.setFieldsValue(values);
     }
   }, [editing]);
 
   useEffect(() => {
-    if (!adding && form.current) form.current.resetFields();
+    if (form.current) {
+      if (!adding) form.current.resetFields();
+    }
   }, [adding]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
-    values.time_from = moment(values.time_from).format("HH:mm");
-    values.time_to = moment(values.time_to).format("HH:mm");
+    values.time_from = dayjs(values.time_from).format("HH:mm");
+    values.time_to = dayjs(values.time_to).format("HH:mm");
 
     try {
       setLoading(true);
@@ -90,15 +91,16 @@ const Discount = (props) => {
     }
   };
 
-  const days = moment.weekdaysShort(true);
+  const days = dayjs.weekdaysMin(true);
 
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form
@@ -107,7 +109,6 @@ const Discount = (props) => {
         initialValues={{
           type: "1",
           discount_type: "1",
-          client_type: "1",
           menu_type: "1",
           comment: false,
         }}
@@ -128,6 +129,7 @@ const Discount = (props) => {
             style={{ width: "100%" }}
             disabled={loading}
             min={1}
+            max={100}
             addonAfter="%"
           />
         </Form.Item>
@@ -290,23 +292,14 @@ const Discount = (props) => {
         >
           <InputNumber style={{ width: "100%" }} disabled={loading} min={0} />
         </Form.Item>
-        <Form.Item
-          label="Клиенты"
-          name="client_type"
-          rules={[{ required: true, message: "Данное поле обязательно" }]}
-        >
-          <Select disabled={loading}>
-            {client_types.map((v) => (
-              <Select.Option key={v.value} value={v.value}>
-                {v.name}
-              </Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
         <Form.Item label="Комментарий" name="description">
           <Input.TextArea disabled={loading} placeholder="Введите текст" />
         </Form.Item>
-        <Form.Item label="Доступно на торговых точках" name="places">
+        <Form.Item
+          label="Доступно на торговых точках"
+          name="places"
+          rules={[{ required: true, message: "Данное поле обязательно" }]}
+        >
           <Select disabled={loading} mode="multiple" maxTagCount="responsive">
             {places.map((v) => (
               <Select.Option key={v._id} value={v._id}>
@@ -340,24 +333,25 @@ const Promocode = (props) => {
 
   useEffect(() => {
     if (form.current) {
-      form.current.resetFields();
+      if (editing) {
+        const values = { ...editing };
+        values.discount = values.discount._id;
+        values.due_to = dayjs(values.due_to);
+        form.current.setFieldsValue(values);
+      }
     }
-    if (editing) {
-      const values = { ...editing };
-      values.discount = values.discount._id;
-      values.due_to = moment(values.due_to);
-      form.current.setFieldsValue(values);
-    }
-  }, [editing]);
+  }, [editing, adding]);
 
   useEffect(() => {
-    if (!adding && form.current) form.current.resetFields();
+    if (form.current) {
+      if (!adding) form.current.resetFields();
+    }
   }, [adding]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
-    values.due_to = moment(values.due_to).format("YYYY-MM-DD");
+    values.due_to = dayjs(values.due_to).format("YYYY-MM-DD");
 
     try {
       setLoading(true);
@@ -384,10 +378,11 @@ const Promocode = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>

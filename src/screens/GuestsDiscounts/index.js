@@ -1,20 +1,38 @@
-import React, { useState, createContext } from "react";
-import { Layout, PageHeader, Tabs, Button } from "antd";
+import React, { useState, createContext, useEffect } from "react";
+import { Layout, Tabs, Button } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Discounts, Promocodes } from "./Tabs";
 import Create from "./Create";
 
 export const Context = createContext();
 
 const { Content } = Layout;
-const { TabPane } = Tabs;
 
 const Screen = (props) => {
   const [activeKey, setActiveKey] = useState("1");
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
+
   const onTabClick = (activeKey) => {
     setActiveKey(activeKey);
   };
+
+  useEffect(() => {
+    if (!adding) setEditing(null);
+  }, [adding]);
+
+  const items = [
+    {
+      key: "1",
+      label: "Скидки",
+      children: <Discounts />,
+    },
+    {
+      key: "2",
+      label: "Промокоды",
+      children: <Promocodes />,
+    },
+  ];
 
   return (
     <Context.Provider
@@ -32,14 +50,7 @@ const Screen = (props) => {
           ]}
         />
         <Content className="main__content__layout">
-          <Tabs onTabClick={onTabClick} activeKey={activeKey}>
-            <TabPane tab="Скидки" key="1">
-              <Discounts />
-            </TabPane>
-            <TabPane tab="Промокоды" key="2">
-              <Promocodes />
-            </TabPane>
-          </Tabs>
+          <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
         </Content>
       </Layout>
     </Context.Provider>

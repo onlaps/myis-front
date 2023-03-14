@@ -7,7 +7,7 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 import { types } from "./data";
 import _ from "lodash";
 
@@ -28,6 +28,7 @@ const Comp = (props) => {
   useEffect(() => {
     if (form.current && !type) {
       form.current.resetFields();
+      form.current.resetFields(["items"]);
     }
   }, [type]);
 
@@ -35,14 +36,14 @@ const Comp = (props) => {
     const values = await form.current.validateFields();
 
     if (!values.items || values.items.length === 0) {
-      return notification.warn({
+      return notification.warning({
         message: "Отсутствуют позиции",
         description: "Добавьте позиции для сохранения",
       });
     }
 
-    const date = moment(values.date).format("YYYY-MM-DD");
-    const time = moment(values.date).format("HH:mm");
+    const date = dayjs(values.date).format("YYYY-MM-DD");
+    const time = dayjs(values.date).format("HH:mm");
 
     values.date = date;
     values.time = time;
@@ -66,7 +67,7 @@ const Comp = (props) => {
 
   const onFieldsChange = (field, fields) => {
     const [f] = field;
-    const [arr, index, name] = f.name;
+    const [, index, name] = f.name;
 
     if (["price", "total", "amount"].indexOf(name) !== -1) {
       let items;
@@ -114,11 +115,12 @@ const Comp = (props) => {
   return (
     <Modal
       title="Поступление"
-      visible={type === "in"}
+      open={type === "in"}
       okText="Сохранить"
       onCancel={() => setType(null)}
       width={1000}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form
@@ -187,15 +189,14 @@ const Comp = (props) => {
             <Form.List name="items">
               {(fields, { add, remove }) => (
                 <>
-                  {fields.map((field, index) => (
-                    <Row key={index}>
+                  {fields.map(({ key, name, field }) => (
+                    <Row key={key}>
                       <Col span={24}>
                         <Space align="end">
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} wh_item`}
                             label="Товар"
-                            name={[field.name, "wh_item"]}
+                            name={[name, "wh_item"]}
                             rules={[
                               {
                                 required: true,
@@ -217,9 +218,9 @@ const Comp = (props) => {
                           </Form.Item>
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} amount`}
                             label="Количество"
-                            name={[field.name, "amount"]}
+                            name={[name, "amount"]}
+                            initialValue={0}
                             rules={[
                               {
                                 required: true,
@@ -234,9 +235,8 @@ const Comp = (props) => {
                           </Form.Item>
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} type`}
                             label="Единица"
-                            name={[field.name, "type"]}
+                            name={[name, "type"]}
                             rules={[
                               {
                                 required: true,
@@ -259,9 +259,9 @@ const Comp = (props) => {
                           </Form.Item>
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} price`}
                             label="Цена"
-                            name={[field.name, "price"]}
+                            name={[name, "price"]}
+                            initialValue={0}
                             rules={[
                               {
                                 required: true,
@@ -276,9 +276,9 @@ const Comp = (props) => {
                           </Form.Item>
                           <Form.Item
                             {...field}
-                            key={`${index} ${field.key} total`}
                             label="Сумма"
-                            name={[field.name, "total"]}
+                            name={[name, "total"]}
+                            initialValue={0}
                             rules={[
                               {
                                 required: true,
@@ -293,7 +293,7 @@ const Comp = (props) => {
                           </Form.Item>
                           <Form.Item label=" " {...field}>
                             <MinusCircleOutlined
-                              onClick={() => remove(field.name)}
+                              onClick={() => remove(name)}
                               disabled={loading}
                             />
                           </Form.Item>

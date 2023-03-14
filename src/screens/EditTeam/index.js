@@ -1,10 +1,13 @@
 import React, { createContext, useEffect, useState } from "react";
-import { Layout, Button, PageHeader, Table, Switch, Dropdown } from "antd";
+import { Layout, Button, Table, Switch, Dropdown, notification } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Menu, Modal } from "antd";
+import { Modal } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
-import { SET_APP } from "@/actions/app";
+import { GET_PLACES } from "@/actions/api";
+import queryString from "query-string";
+import { SET_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -14,7 +17,10 @@ const { confirm } = Modal;
 
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
-  const [pagination, setPagination] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    total: 10,
+  });
   const [filters, setFilters] = useState(null);
   const [sorter, setSorter] = useState(null);
 
@@ -35,13 +41,23 @@ const Screen = (props) => {
     if (!adding) setEditing(null);
   }, [adding]);
 
+  useEffect(() => {
+    getData();
+  }, [pagination.current]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const getData = async () => {
     try {
       setLoading(true);
-      const { data } = await dispatch(call({ url: "users" }));
-      dispatch(SET_APP(["users"], data));
+      const values = {};
+      values.page = pagination.current;
+      const query = queryString.stringify(values);
+      const { data } = await dispatch(call({ url: `users?${query}` }));
+      const { data: items, ...p } = data;
+      dispatch(SET_APP(["users"], items));
+      setPagination(p);
       setLoading(false);
     } catch (e) {
+      console.log(e.message);
       setLoading(false);
     }
   };
@@ -60,19 +76,11 @@ const Screen = (props) => {
     } catch (e) {}
   };
 
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: "places" }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
-  };
-
   useEffect(() => {
+    dispatch(GET_PLACES());
     getRoles();
     getSalaries();
-    getPlaces();
-    getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDelete = async (id) => {
     try {
@@ -104,28 +112,32 @@ const Screen = (props) => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
-  const onUpdate = async (id, values) => {
+  const onUpdate = async (item, values) => {
+    if (item.login === "admin") {
+      return notification.error({
+        title: "Запрещено",
+        message: "Не возможно применить к администратору",
+      });
+    }
+    const { id } = item;
     try {
       setLoading(true);
-      await dispatch(
+      const { data } = await dispatch(
         call({ url: `users/${id}`, method: "PATCH", data: values })
       );
+      dispatch(SET_APP_BY_PARAM(["users"], ["_id", id], data));
+
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -135,16 +147,13 @@ const Screen = (props) => {
   const options = {
     status: {
       render: (val, item) => (
-        <Switch
-          checked={val}
-          onChange={(v) => onUpdate(item._id, { status: v })}
-        />
+        <Switch checked={val} onChange={(v) => onUpdate(item, { status: v })} />
       ),
     },
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -177,7 +186,7 @@ const Screen = (props) => {
               rowKey="_id"
               dataSource={users}
               loading={loading}
-              pagination={false}
+              pagination={pagination}
             />
           </Content>
         </Layout>

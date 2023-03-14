@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Layout, PageHeader } from "antd";
+import { Button, Card, Layout, notification } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Row, Col, Modal } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
@@ -22,6 +23,7 @@ const Screen = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.app.user);
   const current_shift = useSelector((state) => state.app.current_shift);
+  const current_place = useSelector((state) => state.app.current_place);
 
   const onLogout = () => {
     confirm({
@@ -37,7 +39,7 @@ const Screen = () => {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getData = async () => {
     try {
@@ -53,8 +55,14 @@ const Screen = () => {
   const isShift = (item) => item.path.indexOf("shift") !== -1;
 
   const onClick = (item) => () => {
-    if (!current_shift && isShift(item)) {
-      return setShiftOpen(true);
+    if (!current_shift && item.path !== "/") {
+      if (isShift(item)) {
+        return setShiftOpen(true);
+      }
+      return notification.warning({
+        message: "Смена не открыта",
+        description: "Для продолжения необходимо открыть смену",
+      });
     }
 
     if (item.path === "/") {
@@ -66,6 +74,16 @@ const Screen = () => {
     navigate(item.path);
   };
 
+  const getPageTitle = () => {
+    if (current_place) {
+      return current_place.name;
+    }
+  };
+
+  const getPageSubtitle = () => {
+    return user.name;
+  };
+
   const getTitle = (item) => {
     if (current_shift && isShift(item)) return "Смена";
     return item.title;
@@ -74,11 +92,12 @@ const Screen = () => {
   return (
     <Layout>
       <PageHeader
-        title={user.name}
+        title={getPageTitle()}
+        subTitle={getPageSubtitle()}
         ghost={false}
         extra={[
           <Button type="link" key="exit" onClick={onLogout}>
-            Выйти
+            Выйти из системы
           </Button>,
         ]}
       />

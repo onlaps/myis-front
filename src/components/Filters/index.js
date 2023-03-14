@@ -3,7 +3,7 @@ import React, { forwardRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SET_APP } from "@/actions/app";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const Filters = forwardRef((props, ref) => {
   const { onFinish, children } = props;
@@ -21,14 +21,26 @@ const Filters = forwardRef((props, ref) => {
   }, [places, place]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    const current_date = dayjs().format("YYYY-MM-DD");
+    if (!date) {
+      dispatch(SET_APP(["date"], current_date));
+    }
+    if (!period || period.length === 0) {
+      dispatch(SET_APP(["period"], [current_date, current_date]));
+    }
+  }, []);
+
+  useEffect(() => {
     const values = {};
-    if (place) values.place = place;
+    if (place) {
+      values.place = place;
+    }
     if (period) {
       const [start_at, end_at] = period;
-      values.period = [moment(start_at), moment(end_at)];
+      values.period = [dayjs(start_at), dayjs(end_at)];
     }
     if (date) {
-      values.date = moment(date);
+      values.date = dayjs(date);
     }
 
     if (!_.isEmpty(values)) {
@@ -45,9 +57,18 @@ const Filters = forwardRef((props, ref) => {
     if (name === "place") {
       dispatch(SET_APP(["place"], value));
     } else if (name === "date") {
-      dispatch(SET_APP(["date"], value));
+      const _date = value.format("YYYY-MM-DD");
+      if (date !== _date) {
+        dispatch(SET_APP(["date"], _date));
+      }
     } else if (name === "period") {
-      dispatch(SET_APP(["period"], value));
+      const [start_at, end_at] = value;
+      dispatch(
+        SET_APP(
+          ["period"],
+          [start_at.format("YYYY-MM-DD"), end_at.format("YYYY-MM-DD")]
+        )
+      );
     }
   };
 

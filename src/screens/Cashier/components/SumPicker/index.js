@@ -4,6 +4,7 @@ import classNames from "classnames";
 import { Col, Input, Row, List } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 import "./index.less";
+import { useRef } from "react";
 
 const buttons = [
   [1, 2, 3],
@@ -19,10 +20,12 @@ const notes = [
 const { Search } = Input;
 
 const SumPicker = (props) => {
-  const { onChange, children } = props;
-  const [selectedNote, setSelectedNote] = useState();
+  const { onChange, children, loading } = props;
   const list = notes.map((note) => ({ note, value: "0" }));
   const [notesList, setNotesList] = useState(list);
+  const [selectedNote, setSelectedNote] = useState(list[0].note);
+
+  const input = useRef();
 
   const rows = () => {
     return buttons.map((row, index) => <Row key={index}>{numbers(row)}</Row>);
@@ -30,7 +33,14 @@ const SumPicker = (props) => {
 
   const numbers = (row) => {
     return row.map((number, index) => (
-      <Col key={index} span={8} className="number_wrapper">
+      <Col
+        key={index}
+        span={8}
+        className={classNames({
+          number_wrapper: true,
+          number_loading: loading,
+        })}
+      >
         {isButton(number)}
       </Col>
     ));
@@ -47,7 +57,7 @@ const SumPicker = (props) => {
   };
 
   const onClick = (number) => () => {
-    if (!selectedNote) return;
+    if (!selectedNote || loading) return;
     const list = [...notesList];
     const noteIndex = _.findIndex(notesList, { note: selectedNote });
     if (list[noteIndex].value.toString() === "0") list[noteIndex].value = "";
@@ -57,8 +67,17 @@ const SumPicker = (props) => {
 
   const onSearch = () => {
     const list = [...notesList];
-    const noteIndex = _.findIndex(notesList, { note: selectedNote });
+    const noteIndex = _.findIndex(list, { note: selectedNote });
     list[noteIndex].value = list[noteIndex].value.slice(0, -1);
+    if (!list[noteIndex].value) list[noteIndex].value = "0";
+    setNotesList(list);
+  };
+
+  const onChangeInput = (e) => {
+    const list = [...notesList];
+    const noteIndex = _.findIndex(notesList, { note: selectedNote });
+    if (e.target.value === "") e.target.value = "0";
+    list[noteIndex].value = parseInt(e.target.value).toString();
     if (!list[noteIndex].value) list[noteIndex].value = "0";
     setNotesList(list);
   };
@@ -72,9 +91,20 @@ const SumPicker = (props) => {
     return o.note * o.value;
   });
 
+  const onSelectNote = (item) => () => {
+    if (loading) return;
+    setSelectedNote(item.note);
+  };
+
   useEffect(() => {
     onChange(sum);
   }, [sum]); // eslint-disable-line
+
+  useEffect(() => {
+    if (selectedNote && !loading) {
+      input.current.focus();
+    }
+  }, [selectedNote, loading]);
 
   return (
     <div className="sum_picker">
@@ -82,33 +112,39 @@ const SumPicker = (props) => {
         <Col span={12}>
           <List
             dataSource={notesList}
-            rowKey={(o) => o.toString()}
+            rowKey={(o) => o.note.toString()}
             renderItem={(item) => (
               <List.Item
                 className={classNames({
+                  noteLoading: loading,
                   selectedNote: selectedNote === item.note,
                 })}
-                onClick={() => setSelectedNote(item.note)}
+                onClick={onSelectNote(item)}
               >
                 <List.Item.Meta title={`${item.note} ₸`} />
                 <div className="note_amount">x {item.value}</div>
               </List.Item>
             )}
           />
-          <List.Item className="total">
-            <List.Item.Meta title="Итого" />
-            <div className="note_total">{`${sum} ₸`}</div>
-          </List.Item>
-          {children && children}
+          <List>
+            <List.Item className="total">
+              <List.Item.Meta title="Итого" />
+              <div className="note_total">{`${sum} ₸`}</div>
+            </List.Item>
+            {children && children}
+          </List>
         </Col>
         <Col span={12}>
           <div className="title">{getTitle()}</div>
           <Search
-            disabled={!selectedNote}
+            disabled={!selectedNote || loading}
             value={
               selectedNote && _.find(notesList, { note: selectedNote }).value
             }
             placeholder="Количество"
+            ref={input}
+            onBlur={() => !loading && input.current.focus()}
+            onChange={onChangeInput}
             enterButton={<LeftOutlined />}
             onSearch={onSearch}
           />

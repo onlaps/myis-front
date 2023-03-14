@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown, Table, Modal, Menu } from "antd";
+import { Dropdown, Table, Modal } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { Context } from "../..";
@@ -85,27 +85,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );

@@ -16,11 +16,15 @@ export const columns = (options, filters, sorter) => {
     },
     {
       dataIndex: "tables",
-      title: "Столы/Места",
+      title: "Столы",
     },
     {
       dataIndex: "description",
       title: "Комментарий",
+    },
+    {
+      dataIndex: "prepay",
+      title: "Предоплата",
     },
     {
       dataIndex: "user",

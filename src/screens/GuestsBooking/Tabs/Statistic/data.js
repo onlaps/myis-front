@@ -27,6 +27,10 @@ export const columns = (options, filters, sorter) => {
       title: "Комментарий",
     },
     {
+      dataIndex: "prepay",
+      title: "Предоплата",
+    },
+    {
       dataIndex: "user",
       title: "Автор",
     },

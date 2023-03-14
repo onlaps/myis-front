@@ -1,16 +1,13 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import _ from "lodash";
-import { Checkbox, Form, Input, InputNumber } from "antd";
+import { Checkbox, Form, Input } from "antd";
 import { Modal, Select, Switch } from "antd";
-import { Typography, DatePicker, Row, Col, TimePicker } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import { types } from "./Tabs/Checklists/data";
-
-const { Title } = Typography;
 
 const Comp = (props) => {
   const context = useContext(Context);
@@ -79,16 +76,17 @@ const Checklists = (props) => {
     }
   };
 
-  const days = moment.weekdaysShort(true);
+  const days = dayjs.weekdaysMin(true);
   const mDays = new Array(31).fill(1);
 
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form
@@ -236,10 +234,11 @@ const Groups = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>

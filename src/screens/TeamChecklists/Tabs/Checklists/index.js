@@ -1,29 +1,30 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown, Table, Menu, Modal, Popover, Button } from "antd";
+import { Dropdown, Table, Modal, Popover, Button } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns, types } from "./data";
 import { Context } from "../..";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  // const [filters, setFilters] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
 
   const dispatch = useDispatch();
   const checklists = useSelector((state) => state.app.checklists || []);
@@ -31,10 +32,11 @@ const Comp = () => {
   useEffect(() => {
     if (activeKey === "1") {
       getChecklistCategories();
-      getPlaces();
+
+      dispatch(GET_PLACES());
       getData();
     }
-  }, [activeKey]);
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getData = async () => {
     try {
@@ -45,13 +47,6 @@ const Comp = () => {
     } catch (e) {
       setLoading(false);
     }
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
   };
 
   const getChecklistCategories = async () => {
@@ -91,27 +86,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -124,7 +114,7 @@ const Comp = () => {
     },
     days_of_week: {
       render: (val) => {
-        const days = moment.weekdaysShort(true);
+        const days = dayjs.weekdaysMin(true);
         const text = [];
         val.forEach((v) => {
           text.push(days[v - 1]);
@@ -160,8 +150,8 @@ const Comp = () => {
   return (
     <>
       <Table
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
+        // onChange={onChange}
         rowKey="_id"
         dataSource={checklists}
         loading={loading}

@@ -62,10 +62,11 @@ const Comp = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>

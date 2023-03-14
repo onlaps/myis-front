@@ -1,13 +1,13 @@
 import React, { useState, useEffect, createContext } from "react";
 import { Col, Card, Table, Button, Popover } from "antd";
-import { Menu, Modal, Dropdown } from "antd";
+import { Modal, Dropdown } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
-import moment from "moment";
+import dayjs from "dayjs";
 import "./index.less";
 import Create from "./Create";
 
@@ -67,23 +67,18 @@ const CashAction = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -91,7 +86,7 @@ const CashAction = () => {
     },
     createdAt: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY HH:mm");
+        return dayjs(val).format("DD.MM.YYYY HH:mm");
       },
     },
     amount: {

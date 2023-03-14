@@ -85,7 +85,7 @@ const NewGuest = (props) => {
 
   return (
     <Modal
-      visible={newGuest}
+      open={newGuest}
       okText={textRenderer()}
       destroyOnClose={true}
       title="Новый гость"
@@ -97,18 +97,20 @@ const NewGuest = (props) => {
     >
       <CTX.Provider
         value={{
-          setStep,
           setClient,
           unknown,
           setUnknown,
-          selected,
-          setSelected,
-          loading,
           handleKeyUp,
         }}
       >
-        {step === 1 && <Find />}
-        {step === 2 && <Table />}
+        {step === 1 && <Find loading={loading} />}
+        {step === 2 && (
+          <Table
+            loading={loading}
+            selected={selected}
+            setSelected={setSelected}
+          />
+        )}
       </CTX.Provider>
     </Modal>
   );
@@ -309,8 +311,8 @@ const Unknown = () => {
   );
 };
 
-const Table = () => {
-  const { selected, setSelected, loading: $loading } = useContext(CTX);
+export const Table = (props) => {
+  const { selected, setSelected, loading: $loading } = props;
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
 

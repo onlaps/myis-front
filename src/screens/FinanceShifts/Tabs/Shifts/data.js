@@ -3,60 +3,40 @@ import { advancedColumns } from "@/utils";
 export const columns = (options, filters, sorter) => {
   const data = [
     {
-      title: "",
-      children: [
-        {
-          title: "Смена",
-          dataIndex: "shift",
-        },
-        {
-          title: "Сотрудник",
-          dataIndex: "user",
-        },
-        {
-          title: "Время",
-          dataIndex: "period",
-        },
-      ],
+      title: "Сотрудник",
+      dataIndex: "user",
     },
     {
-      title: "Наличные",
-      children: [
-        {
-          title: "Выручка",
-          dataIndex: "revenue",
-        },
-        {
-          title: "На начало",
-          dataIndex: "at_start",
-        },
-        {
-          title: "Расходы",
-          dataIndex: "expenses",
-        },
-        {
-          title: "Инкассация",
-          dataIndex: "collection",
-        },
-        {
-          title: "На конец",
-          dataIndex: "at_end",
-        },
-        {
-          title: "Остаток",
-          dataIndex: "balance",
-        },
-      ],
+      title: "Время",
+      dataIndex: "date",
     },
-
     {
-      title: "По карте",
-      children: [
-        {
-          title: "Выручка",
-          dataIndex: "revenue",
-        },
-      ],
+      title: "Выручка",
+      dataIndex: "cash_receiptes",
+    },
+    {
+      title: "На начало",
+      dataIndex: "start_sum",
+    },
+    {
+      title: "Расходы",
+      dataIndex: "expenses",
+    },
+    {
+      title: "Изъятия",
+      dataIndex: "withdrawal",
+    },
+    {
+      title: "Пополнения",
+      dataIndex: "deposit",
+    },
+    {
+      title: "На конец",
+      dataIndex: "balance",
+    },
+    {
+      title: "Выручка, карта",
+      dataIndex: "card_receiptes",
     },
   ];
 

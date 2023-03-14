@@ -1,14 +1,16 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Table, Form, Select, Button, DatePicker, Popover } from "antd";
-import { Dropdown, Menu, Modal } from "antd";
+import { Dropdown, Modal } from "antd";
 import { columns, types } from "./data";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { useSelector, useDispatch } from "react-redux";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import queryString from "query-string";
+import Filters from "@/components/Filters";
 import { Context } from "../..";
-import moment from "moment";
+import dayjs from "dayjs";
 import _ from "lodash";
 
 const { confirm } = Modal;
@@ -17,7 +19,10 @@ const Comp = () => {
   const { activeKey } = useContext(Context);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    total: 10,
+  });
   const [sorter, setSorter] = useState(null);
 
   const dispatch = useDispatch();
@@ -37,15 +42,8 @@ const Comp = () => {
 
   const getUsers = async () => {
     try {
-      const { data } = await dispatch(call({ url: `users` }));
-      dispatch(SET_APP(["users"], data));
-    } catch (e) {}
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
+      const { data } = await dispatch(call({ url: `users/all` }));
+      dispatch(SET_APP(["exp_users"], data));
     } catch (e) {}
   };
 
@@ -57,40 +55,47 @@ const Comp = () => {
   };
 
   useEffect(() => {
+    dispatch(GET_PLACES());
     getUsers();
-    getPlaces();
     getExpenseCategories();
     if (activeKey === "1") {
       getData();
     }
-  }, [activeKey]);
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getData = async () => {
     try {
       setLoading(true);
       const values = await form.current.validateFields();
-      if (values.date) {
-        const [start_at, end_at] = values.date;
-        values.start_at = moment(start_at).format("YYYY-MM-DD");
-        values.end_at = moment(end_at).format("YYYY-MM-DD");
+      if (values.period) {
+        const [start_at, end_at] = values.period;
+        values.start_at = dayjs(start_at).format("YYYY-MM-DD");
+        values.end_at = dayjs(end_at).format("YYYY-MM-DD");
       }
+
+      values.page = pagination.current;
 
       const query = queryString.stringify(values);
       const { data } = await dispatch(call({ url: `expenses?${query}` }));
-      dispatch(SET_APP(["expenses"], data));
+      const { data: items, ...p } = data;
+      setPagination(p);
+      dispatch(SET_APP(["expenses"], items));
       setLoading(false);
     } catch (e) {
+      console.log(e);
       setLoading(false);
     }
   };
 
-  const onDelete = () => {
-    dispatch(
-      call({
-        url: `expenses`,
-        method: "DELETE",
-      })
-    );
+  const onDelete = async (id) => {
+    try {
+      setLoading(true);
+      await dispatch(call({ url: `expenses/${id}`, method: "DELETE" }));
+      await getData();
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
   };
 
   const onClick = (item) => (e) => {
@@ -109,23 +114,26 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
+
+  const renderPositions = (v) => {
+    let text = `${v.expense_category.name} - ${v.total} ₸`;
+    if (v.expense_category.with_employee) {
+      text = `${v.expense_category.name} (${v.user.name}) - ${v.total} ₸`;
+    }
+    return <div key={v._id}>{text} </div>;
+  };
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -139,7 +147,7 @@ const Comp = () => {
     date: {
       render: (val) => {
         if (!val) return;
-        return moment(val).format("DD.MM.YYYY");
+        return dayjs(val).format("DD.MM.YYYY");
       },
     },
     items: {
@@ -147,11 +155,7 @@ const Comp = () => {
         if (!_.isArray(val) || val.length === 0) return null;
         return (
           <Popover
-            content={val.map((v) => (
-              <div key={v._id}>
-                {v.expense_category.name} - {v.sum} тг
-              </div>
-            ))}
+            content={val.map(renderPositions)}
             trigger="hover"
             placement="bottom"
           >
@@ -175,12 +179,7 @@ const Comp = () => {
 
   return (
     <>
-      <Form
-        style={{ marginBottom: 16 }}
-        ref={form}
-        layout="inline"
-        onFinish={onFinish}
-      >
+      <Filters ref={form} onFinish={onFinish}>
         <Form.Item name="place">
           <Select
             style={{ width: 150 }}
@@ -195,7 +194,7 @@ const Comp = () => {
               ))}
           </Select>
         </Form.Item>
-        <Form.Item name="date">
+        <Form.Item name="period">
           <DatePicker.RangePicker format="DD.MM.YYYY" disabled={loading} />
         </Form.Item>
         <Form.Item name="category">
@@ -231,14 +230,14 @@ const Comp = () => {
             Поиск
           </Button>
         </Form.Item>
-      </Form>
+      </Filters>
       <Table
         dataSource={expenses}
         columns={columns(options, filters, sorter)}
         onChange={onChange}
         rowKey="_id"
         loading={loading}
-        pagination={false}
+        pagination={pagination}
       />
     </>
   );

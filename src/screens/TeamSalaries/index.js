@@ -1,12 +1,15 @@
 import React, { createContext, useEffect, useState } from "react";
-import { Layout, Button, PageHeader, Table, Switch, Dropdown } from "antd";
+import { Layout, Button, Table, Switch, Dropdown } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Menu, Modal } from "antd";
+import { Modal } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
+import _ from "lodash";
+import { types } from "./data";
 
 export const Context = createContext();
 const { Content } = Layout;
@@ -14,16 +17,8 @@ const { confirm } = Modal;
 
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
-  // const [pagination, setPagination] = useState(null);
-  // const [filters, setFilters] = useState(null);
-  // const [sorter, setSorter] = useState(null);
   const [editing, setEditing] = useState(null);
 
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
@@ -79,21 +74,16 @@ const Screen = (props) => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const onUpdate = async (id, values) => {
     try {
@@ -119,10 +109,15 @@ const Screen = (props) => {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
+      },
+    },
+    type: {
+      render: (value) => {
+        return _.find(types, { value }).text;
       },
     },
   };
@@ -148,7 +143,6 @@ const Screen = (props) => {
           <Content className="main__content__layout">
             <Table
               columns={columns(options)}
-              // onChange={onChange}
               pagination={false}
               rowKey="_id"
               dataSource={salaries}

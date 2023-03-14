@@ -12,8 +12,12 @@ const Comp = (props) => {
   const form = useRef();
 
   useEffect(() => {
-    if (editing && form.current) {
-      form.current.setFieldsValue({ ...editing, password: "++++++" });
+    if (form.current) {
+      if (editing) {
+        form.current.setFieldsValue({ ...editing });
+      } else {
+        form.current.resetFields();
+      }
     }
   }, [editing]);
 
@@ -46,9 +50,10 @@ const Comp = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
       onOk={onSubmit}
       loading={loading}

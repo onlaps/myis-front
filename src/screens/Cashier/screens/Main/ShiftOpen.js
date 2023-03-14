@@ -5,6 +5,7 @@ import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import classNames from "classnames";
 
 const Screen = (props) => {
   const { shiftOpen, setShiftOpen } = props;
@@ -34,7 +35,7 @@ const Screen = (props) => {
       }
     };
     if (shiftOpen) getData();
-  }, [shiftOpen, current_place]);
+  }, [shiftOpen, current_place]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async () => {
     setLoading(true);
@@ -55,7 +56,7 @@ const Screen = (props) => {
   return (
     <Modal
       okText="Открыть смену"
-      visible={shiftOpen}
+      open={shiftOpen}
       okButtonProps={{ disabled: loading }}
       cancelButtonProps={{ disabled: loading }}
       onCancel={onCancel}
@@ -63,11 +64,17 @@ const Screen = (props) => {
       onOk={onSubmit}
       title="Сумма в кассе"
     >
-      <SumPicker onChange={onChange}>
+      <SumPicker onChange={onChange} loading={loading}>
         {prevShift && (
           <List.Item className="total">
             <List.Item.Meta title="Пред. смена" />
-            <div className="note_total">{`${prevShift.balance} ₸`}</div>
+            <div
+              className={classNames({
+                note_total: true,
+                total_lower: prevShift.balance > sum,
+                total_higher: prevShift.balance < sum,
+              })}
+            >{`${prevShift.balance} ₸`}</div>
           </List.Item>
         )}
       </SumPicker>

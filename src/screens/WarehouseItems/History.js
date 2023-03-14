@@ -4,7 +4,7 @@ import { Context } from "./index";
 import { historyColumns } from "./data";
 import { call } from "@/actions/axios";
 import { useDispatch } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const Comp = (props) => {
   const context = useContext(Context);
@@ -48,7 +48,7 @@ const Comp = (props) => {
     },
     createdAt: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY HH:mm");
+        return dayjs(val).format("DD.MM.YYYY HH:mm");
       },
     },
     place: {
@@ -69,7 +69,7 @@ const Comp = (props) => {
   return (
     <Modal
       title="История"
-      visible={history}
+      open={history}
       footer={null}
       onCancel={() => setHistory(false)}
       destroyOnClose={true}

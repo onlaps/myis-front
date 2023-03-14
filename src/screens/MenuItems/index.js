@@ -1,13 +1,16 @@
 import React, { createContext, useEffect, useRef, useState } from "react";
 import _ from "lodash";
-import { Layout, Button, PageHeader, Table } from "antd";
-import { Dropdown, Menu, Modal } from "antd";
+import { Layout, Button, Table } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
+import { Dropdown, Modal } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Form, Select } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import queryString from "query-string";
 import { SET_APP } from "@/actions/app";
+import Filters from "@/components/Filters";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -19,18 +22,19 @@ const Screen = (props) => {
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const form = useRef();
-  const [filters, setFilters] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  // const [filters, setFilters] = useState(null);
+  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const onChange = (pagination, filters, sorter) => {
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
 
   const dispatch = useDispatch();
 
+  const place = useSelector((state) => state.app.place);
   const places = useSelector((state) => state.app.places || []);
   const menu_items = useSelector((state) => state.app.menu_items || []);
   const menu_categories = useSelector(
@@ -38,11 +42,15 @@ const Screen = (props) => {
   );
 
   useEffect(() => {
-    getPlaces();
+    dispatch(GET_PLACES());
     getCategories();
     getWhItems();
     getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!adding) setEditing(null);
+  }, [adding]);
 
   const getData = async () => {
     try {
@@ -61,13 +69,6 @@ const Screen = (props) => {
     try {
       const { data } = await dispatch(call({ url: "wh_items" }));
       dispatch(SET_APP(["wh_items"], data));
-    } catch (e) {}
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
     } catch (e) {}
   };
 
@@ -108,27 +109,22 @@ const Screen = (props) => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -137,20 +133,44 @@ const Screen = (props) => {
     cost_price: {
       render: (val, item) => {
         if (item.wh_item_prices.length === 0) return null;
-        return _.meanBy(item.wh_item_prices, "price");
+        const _item = _.find(item.wh_item_prices, { place });
+        if (!_item) return null;
+        return _item.price;
+      },
+    },
+    item_price: {
+      render: (val, item) => {
+        if (item.item_prices.length === 0) return null;
+        const _item = _.find(item.item_prices, { place });
+        if (!_item) return null;
+        return _item.price;
       },
     },
     margin: {
       render: (val, item) => {
         if (item.wh_item_prices.length === 0) return null;
-        return item.price - _.meanBy(item.wh_item_prices, "price");
+        if (item.item_prices.length === 0) return null;
+        const wh_item = _.find(item.wh_item_prices, { place });
+        if (!wh_item) return null;
+        const _item = _.find(item.item_prices, { place });
+        if (!_item) return null;
+
+        return _item.price - wh_item.price;
       },
     },
     margin_percent: {
       render: (val, item) => {
         if (item.wh_item_prices.length === 0) return null;
-        const cost_price = _.meanBy(item.wh_item_prices, "price");
-        return Math.round(((item.price - cost_price) / cost_price) * 100) + "%";
+        if (item.item_prices.length === 0) return null;
+        const wh_item = _.find(item.wh_item_prices, { place });
+        if (!wh_item) return null;
+        const _item = _.find(item.item_prices, { place });
+        if (!_item) return null;
+
+        return (
+          Math.round(((_item.price - wh_item.price) / wh_item.price) * 100) +
+          "%"
+        );
       },
     },
   };
@@ -180,18 +200,9 @@ const Screen = (props) => {
             ]}
           />
           <Content className="main__content__layout">
-            <Form
-              style={{ marginBottom: 16 }}
-              ref={form}
-              layout="inline"
-              onFinish={onFinish}
-            >
+            <Filters ref={form} onFinish={onFinish}>
               <Form.Item name="place">
-                <Select
-                  style={{ width: 200 }}
-                  placeholder="Все торговые точки"
-                  allowClear
-                >
+                <Select style={{ width: 200 }} placeholder="Все торговые точки">
                   {places.map((v) => (
                     <Select.Option key={v._id} value={v._id}>
                       {v.name}
@@ -219,7 +230,7 @@ const Screen = (props) => {
                   allowClear
                 >
                   <Select.Option value="1">Активные</Select.Option>
-                  <Select.Option value="2">Неактивные</Select.Option>
+                  <Select.Option value="0">Неактивные</Select.Option>
                 </Select>
               </Form.Item>
               <Form.Item>
@@ -227,10 +238,10 @@ const Screen = (props) => {
                   Поиск
                 </Button>
               </Form.Item>
-            </Form>
+            </Filters>
             <Table
-              columns={columns(options, filters, sorter)}
-              onChange={onChange}
+              columns={columns(options)}
+              // onChange={onChange}
               rowKey="_id"
               dataSource={menu_items}
               loading={loading}

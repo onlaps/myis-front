@@ -68,7 +68,7 @@ const Create = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={!!type}
+      open={!!type}
       okText="Сохранить"
       onCancel={() => setType(false)}
       onOk={onSubmit}

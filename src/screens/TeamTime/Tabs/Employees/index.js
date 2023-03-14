@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { Button, DatePicker, Form, Popover, Select, Table } from "antd";
 import { columns } from "./data";
-import moment from "moment";
+import dayjs from "dayjs";
 import _ from "lodash";
 import { Context } from "../..";
 import { useSelector } from "react-redux";
 import Filters from "@/components/Filters";
+import usePrevious from "@/hooks/usePrevious";
+import Immutable from "immutable";
 
 const Comp = () => {
   const context = useContext(Context);
   const { loading, setEditing, setAdding, setDataFilters, dataFilters } =
     context;
   const [days, setDays] = useState({});
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
+  // const [filters, setFilters] = useState(null);
+  // const [pagination, setPagination] = useState(null);
+  // const [sorter, setSorter] = useState(null);
 
   const form = useRef();
 
@@ -24,6 +26,9 @@ const Comp = () => {
 
   const items = _.groupBy(schedules, (o) => o.user.name);
 
+  const _items = usePrevious(items);
+  const _dataFilters = usePrevious(dataFilters);
+
   useEffect(() => {
     if (!_.isEmpty(dataFilters)) {
       form.current.setFieldsValue(dataFilters);
@@ -31,12 +36,21 @@ const Comp = () => {
   }, [dataFilters]);
 
   useEffect(() => {
-    const start = moment(date).startOf("week");
-    const end = moment(date).endOf("week");
+    if (
+      !Immutable.fromJS(items).equals(Immutable.fromJS(_items)) ||
+      !Immutable.fromJS(dataFilters).equals(Immutable.fromJS(_dataFilters))
+    ) {
+      updateDates();
+    }
+  }, [dataFilters, items]); //eslint-disable-line
+
+  const updateDates = () => {
+    const start = dayjs(date).startOf("week");
+    const end = dayjs(date).endOf("week");
     let days = end.diff(start, "days");
     let dates = [];
     for (let i = 0; i <= days; i++) {
-      const day = moment(start).add(i, "days");
+      const day = dayjs(start).add(i, "days");
       const date = day.format("YYYY-MM-DD");
       dates.push({
         title: day.format("DD.MM dd").toUpperCase(),
@@ -84,7 +98,7 @@ const Comp = () => {
       });
     }
     setDays(dates);
-  }, []);
+  };
 
   const getDays = () => {
     const $days = {};
@@ -93,11 +107,11 @@ const Comp = () => {
     return $days;
   };
 
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
+  // const onChange = (pagination, filters, sorter) => {
+  //   setPagination(pagination);
+  //   setFilters(filters);
+  //   setSorter({ [sorter.field]: sorter.order });
+  // };
 
   const options = {
     user: {
@@ -111,10 +125,8 @@ const Comp = () => {
   const onFinish = async () => {
     const values = await form.current.validateFields();
     if (values.date) {
-      values.start_at = moment(values.date)
-        .startOf("week")
-        .format("YYYY-MM-DD");
-      values.end_at = moment(values.date).endOf("week").format("YYYY-MM-DD");
+      values.start_at = dayjs(values.date).startOf("week").format("YYYY-MM-DD");
+      values.end_at = dayjs(values.date).endOf("week").format("YYYY-MM-DD");
     }
     setDataFilters(values);
   };
@@ -145,9 +157,9 @@ const Comp = () => {
         </Form.Item>
       </Filters>
       <Table
-        columns={columns(options, filters, sorter)}
-        pagination={pagination}
-        onChange={onChange}
+        columns={columns(options)}
+        pagination={null}
+        // onChange={onChange}
         loading={loading}
         dataSource={Object.keys(items).map((key) => ({
           key,

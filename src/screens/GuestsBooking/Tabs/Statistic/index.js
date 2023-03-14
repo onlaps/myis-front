@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
-import { Table, Form, Select, Button, DatePicker } from "antd";
+import { Table, Form, Select, Button, DatePicker, Popover } from "antd";
 import { columns } from "./data";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
@@ -13,16 +13,7 @@ import Filters from "@/components/Filters";
 const Comp = () => {
   const context = useContext(Context);
   const { activeKey } = context;
-  // const [filters, setFilters] = useState(null);
-  // const [pagination, setPagination] = useState(null);
-  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
 
   const dispatch = useDispatch();
 
@@ -46,8 +37,8 @@ const Comp = () => {
       const values = await form.current.validateFields();
       if (values.period && _.isArray(values.period)) {
         const [start_at, end_at] = values.period;
-        values.start_at = moment(start_at).format("YYYY-MM-DD");
-        values.end_at = moment(end_at).format("YYYY-MM-DD");
+        values.start_at = dayjs(start_at).format("YYYY-MM-DD");
+        values.end_at = dayjs(end_at).format("YYYY-MM-DD");
       }
       const query = queryString.stringify(values);
       const { data } = await dispatch(call({ url: `books?${query}` }));
@@ -60,7 +51,7 @@ const Comp = () => {
 
   const options = {
     date: {
-      render: (val) => moment(val).format("DD.MM.YYYY"),
+      render: (val) => dayjs(val).format("DD.MM.YYYY"),
     },
     tables: {
       render: (val) => {
@@ -80,7 +71,7 @@ const Comp = () => {
     },
     createdAt: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY");
+        return dayjs(val).format("DD.MM.YYYY");
       },
     },
     user: {
@@ -95,6 +86,17 @@ const Comp = () => {
             <div>{item.phone}</div>
             <div>{item.name}</div>
           </>
+        );
+      },
+    },
+    description: {
+      render: (val) => {
+        if (!val) return null;
+
+        return (
+          <Popover content={val} trigger="hover" placement="bottom">
+            <Button type="link">Показать</Button>
+          </Popover>
         );
       },
     },
@@ -123,7 +125,6 @@ const Comp = () => {
       </Filters>
       <Table
         columns={columns(options)}
-        // onChange={onChange}
         rowKey="_id"
         dataSource={books}
         loading={loading}

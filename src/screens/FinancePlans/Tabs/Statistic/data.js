@@ -7,11 +7,11 @@ export const columns = (options, filters, sorter) => {
       title: "Название",
     },
     {
-      dataIndex: "total_time",
+      dataIndex: "duration",
       title: "Общее время использования, мин",
     },
     {
-      dataIndex: "total_sum",
+      dataIndex: "sum",
       title: "Общая оплата по тарифу",
     },
   ];

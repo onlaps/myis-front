@@ -1,17 +1,19 @@
 import React, { createContext, useEffect, useRef, useState } from "react";
-import { Layout, Button, PageHeader, Table, DatePicker } from "antd";
+import { Layout, Button, Table, DatePicker } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Form, Select } from "antd";
 import { columns } from "./data";
 import Create from "./Create";
 import History from "./History";
 import Award from "./Award";
-import { SET_APP } from "@/actions/app";
+import { GET_PLACES } from "@/actions/api";
 import { call } from "@/actions/axios";
 import Filters from "@/components/Filters";
 import queryString from "query-string";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 import _ from "lodash";
+import { SET_APP } from "@/actions/app";
 
 export const Context = createContext();
 const { Content } = Layout;
@@ -20,46 +22,23 @@ const Screen = () => {
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const [user, setUser] = useState(false);
-  const [data, setData] = useState([]);
   const form = useRef();
   const [loading, setLoading] = useState(false);
-  // const [pagination, setPagination] = useState({
-  //   current: 1,
-  //   total: 10,
-  // });
-  // const [filters, setFilters] = useState(null);
-  // const [sorter, setSorter] = useState(null);
-
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
 
   const dispatch = useDispatch();
   const places = useSelector((state) => state.app.places || []);
-
-  const getPlaces = async () => {
-    try {
-      setLoading(true);
-      const { data } = await dispatch(call({ url: "places" }));
-      dispatch(SET_APP(["places"], data));
-      setLoading(false);
-    } catch (e) {
-      setLoading(false);
-    }
-  };
+  const user_payrolls = useSelector((state) => state.app.user_payrolls || []);
 
   const getData = async () => {
     try {
       setLoading(true);
       const values = await form.current.validateFields();
-      values.date = moment(values.date).format("YYYY-MM-DD");
+      values.date = dayjs(values.date).format("YYYY-MM-DD");
       const query = queryString.stringify(values);
       const { data } = await dispatch(
         call({ url: `users/salaries/count?${query}` })
       );
-      setData(data);
+      dispatch(SET_APP(["user_payrolls"], data));
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -67,8 +46,11 @@ const Screen = () => {
   };
 
   useEffect(() => {
-    getPlaces();
-    getData();
+    const init = async () => {
+      await dispatch(GET_PLACES());
+      getData();
+    };
+    init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const options = {
@@ -82,9 +64,26 @@ const Screen = () => {
         return v.length;
       },
     },
+    hours: {
+      render: (v, item) => {
+        return _.sum(
+          item.shift_users.map((su) => {
+            let hour, minute;
+            [hour, minute] = su.start_time.split(":");
+            let start_at = dayjs().set("hour", hour).set("minute", minute);
+            [hour, minute] = su.end_time.split(":");
+            let end_at = dayjs().set("hour", hour).set("minute", minute);
+            var duration = end_at.diff(start_at, "hours");
+            if (duration < 0) end_at = end_at.add(1, "day");
+            duration = end_at.diff(start_at, "hours");
+            return duration;
+          })
+        );
+      },
+    },
     guests: {
-      render: (v) => {
-        return _.sum(v, "guests");
+      render: (v, item) => {
+        return _.sumBy(item.shifts, "guests");
       },
     },
     menu_items: {
@@ -93,10 +92,27 @@ const Screen = () => {
       },
     },
     bonus: {
-      render: (v) => {
+      render: (v, item) => {
+        const total = _.sumBy(item.bonuses, (o) => {
+          if (o.type === "bonus") return o.value;
+          return 0;
+        });
         return (
-          <Button size="small" type="link" onClick={() => setHistory(true)}>
-            {v}
+          <Button size="small" type="link" onClick={() => setHistory(item)}>
+            {total}
+          </Button>
+        );
+      },
+    },
+    penalty: {
+      render: (v, item) => {
+        const total = _.sumBy(item.bonuses, (o) => {
+          if (o.type === "penalty") return o.value;
+          return 0;
+        });
+        return (
+          <Button size="small" type="link" onClick={() => setHistory(item)}>
+            {total}
           </Button>
         );
       },
@@ -117,9 +133,8 @@ const Screen = () => {
   };
 
   const items = () => {
-    return data;
     return _.filter(
-      data,
+      user_payrolls,
       (o) => o.shift_users.length > 0 && o.shifts.length > 0
     );
   };
@@ -158,7 +173,11 @@ const Screen = () => {
                 </Select>
               </Form.Item>
               <Form.Item name="date">
-                <DatePicker format="MMM YYYY" picker="month" />
+                <DatePicker
+                  format="MMM YYYY"
+                  picker="month"
+                  allowClear={false}
+                />
               </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit">
@@ -169,7 +188,7 @@ const Screen = () => {
             <Table
               dataSource={items()}
               columns={columns(options)}
-              // onChange={onChange}
+              rowKey="_id"
               loading={loading}
               pagination={false}
             />

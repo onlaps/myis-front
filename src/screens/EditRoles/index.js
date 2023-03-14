@@ -1,7 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { Layout, Button, PageHeader, Table } from "antd";
-import { Switch, Dropdown, Menu, Modal } from "antd";
+import { Layout, Button, Table } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
+import { Switch, Dropdown, Modal } from "antd";
 import { columns } from "./data";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,15 +16,6 @@ const { confirm } = Modal;
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [filters, setFilters] = useState(null);
-  const [sorter, setSorter] = useState(null);
-
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const [loading, setLoading] = useState(false);
 
@@ -102,23 +94,18 @@ const Screen = (props) => {
   useEffect(() => {
     getAccesses();
     getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     status: {
@@ -132,7 +119,7 @@ const Screen = (props) => {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -160,11 +147,11 @@ const Screen = (props) => {
           />
           <Content className="main__content__layout">
             <Table
-              columns={columns(options, filters, sorter)}
-              onChange={onChange}
+              columns={columns(options)}
               dataSource={roles}
               rowKey="_id"
               pagination={false}
+              loading={loading}
             />
           </Content>
         </Layout>

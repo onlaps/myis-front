@@ -3,7 +3,7 @@ import _ from "lodash";
 
 const INITIAL_STATE = {};
 
-export default (state = INITIAL_STATE, action) => {
+const app = (state = INITIAL_STATE, action) => {
   var newState, $var;
   switch (action.type) {
     case "SET_APP":
@@ -15,6 +15,7 @@ export default (state = INITIAL_STATE, action) => {
       const [name, value] = action.param;
       $var = newState.getIn(action.path).toJS();
       $var = _.findIndex($var, { [name]: value });
+      console.log($var);
       if ($var === -1) return newState.toJS();
       Object.keys(action.value).forEach((key) => {
         newState = newState.setIn(
@@ -57,3 +58,5 @@ export default (state = INITIAL_STATE, action) => {
       return state;
   }
 };
+
+export default app;

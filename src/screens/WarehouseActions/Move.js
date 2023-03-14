@@ -14,7 +14,7 @@ import { Context } from "./index";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 import _ from "lodash";
 import queryString from "query-string";
 
@@ -42,20 +42,20 @@ const Comp = (props) => {
     if (type === "move") {
       getWhItems({ place: places[0]?._id });
     }
-  }, [type, places]);
+  }, [type, places]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
     if (!values.items || values.items.length === 0) {
-      return notification.warn({
+      return notification.warning({
         message: "Отсутствуют позиции",
         description: "Добавьте позиции для сохранения",
       });
     }
 
-    const date = moment(values.date).format("YYYY-MM-DD");
-    const time = moment(values.date).format("HH:mm");
+    const date = dayjs(values.date).format("YYYY-MM-DD");
+    const time = dayjs(values.date).format("HH:mm");
 
     values.date = date;
     values.time = time;
@@ -87,7 +87,7 @@ const Comp = (props) => {
 
   const onFieldsChange = (field, fields) => {
     const [f] = field;
-    const [arr, index, name] = f.name;
+    const [, index, name] = f.name;
 
     if (["price", "total", "amount", "wh_item"].indexOf(name) !== -1) {
       let items;
@@ -148,11 +148,12 @@ const Comp = (props) => {
   return (
     <Modal
       title="Перемещение"
-      visible={type === "move"}
+      open={type === "move"}
       okText="Сохранить"
       onCancel={() => setType(null)}
       width={1000}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form

@@ -3,7 +3,7 @@ import { advancedColumns } from "@/utils";
 export const columns = (options, filters, sorter) => {
   const data = [
     {
-      dataIndex: "period",
+      dataIndex: "time",
       title: "Время",
     },
     {
@@ -15,8 +15,8 @@ export const columns = (options, filters, sorter) => {
       title: "Позиции",
     },
     {
-      dataIndex: "sum",
-      title: "Скидки",
+      dataIndex: "discount",
+      title: "Скидка",
     },
     {
       dataIndex: "type",
@@ -28,7 +28,7 @@ export const columns = (options, filters, sorter) => {
     },
     {
       dataIndex: "user",
-      title: "Кассир",
+      title: "Пользователь",
     },
   ];
 

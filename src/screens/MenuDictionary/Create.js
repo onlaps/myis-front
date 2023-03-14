@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Dropdown, Form, Input, Menu, Modal, Select, Upload } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import { Form, Input, Modal, Select } from "antd";
+// import { Dropdown, Upload, Menu } from "antd";
+// import { InboxOutlined } from "@ant-design/icons";
 import { Context } from ".";
 import { useDispatch, useSelector } from "react-redux";
 import { call } from "@/actions/axios";
@@ -8,7 +9,7 @@ import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 
 const Comp = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding, editing, setEditing } = context;
+  const { adding, setAdding, editing } = context;
   const [loading, setLoading] = useState(false);
   const [path, setPath] = useState(null);
 
@@ -36,7 +37,6 @@ const Comp = (props) => {
     if (!adding && form.current) {
       form.current.resetFields();
       setPath(null);
-      setEditing(null);
     }
   }, [adding]);
 
@@ -69,28 +69,28 @@ const Comp = (props) => {
     }
   };
 
-  const customRequest = async (options) => {
-    const { file } = options;
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const headers = {
-        "Content-type": "multipart/form-data",
-      };
-      const { data } = await dispatch(
-        call({
-          url: `menu_categories/upload`,
-          method: "POST",
-          data: formData,
-          headers,
-        })
-      );
-      const { path } = data;
-      setPath(path);
-    } catch (e) {
-      console.log(e.message);
-    }
-  };
+  // const customRequest = async (options) => {
+  //   const { file } = options;
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   try {
+  //     const headers = {
+  //       "Content-type": "multipart/form-data",
+  //     };
+  //     const { data } = await dispatch(
+  //       call({
+  //         url: `menu_categories/upload`,
+  //         method: "POST",
+  //         data: formData,
+  //         headers,
+  //       })
+  //     );
+  //     const { path } = data;
+  //     setPath(path);
+  //   } catch (e) {
+  //     console.log(e.message);
+  //   }
+  // };
 
   const onDelete = () => {
     if (!path) return;
@@ -112,32 +112,33 @@ const Comp = (props) => {
     } catch (e) {}
   };
 
-  const onClick = (e) => {
-    if (e.key === "1") {
-      onDelete();
-      setPath(null);
-    }
-  };
+  // const onClick = (e) => {
+  //   if (e.key === "1") {
+  //     onDelete();
+  //     setPath(null);
+  //   }
+  // };
 
-  const menu = (
-    <Menu
-      onClick={onClick}
-      items={[
-        {
-          label: "Удалить",
-          key: "1",
-        },
-      ]}
-    />
-  );
+  // const menu = (
+  //   <Menu
+  //     onClick={onClick}
+  //     items={[
+  //       {
+  //         label: "Удалить",
+  //         key: "1",
+  //       },
+  //     ]}
+  //   />
+  // );
 
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={onCancel}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>

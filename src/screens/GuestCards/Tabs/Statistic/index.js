@@ -6,14 +6,11 @@ import { useDispatch } from "react-redux";
 import queryString from "query-string";
 import { call } from "@/actions/axios";
 import Filters from "@/components/Filters";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const Comp = () => {
   const context = useContext(Context);
   const { activeKey } = context;
-  // const [filters, setFilters] = useState(null);
-  // const [pagination, setPagination] = useState(null);
-  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
 
@@ -26,8 +23,8 @@ const Comp = () => {
       const values = await form.current.validateFields();
       if (values.period) {
         const [start_at, end_at] = values.period;
-        values.start_at = moment(start_at).format("YYYY-MM-DD");
-        values.end_at = moment(end_at).add(1, "day").format("YYYY-MM-DD");
+        values.start_at = dayjs(start_at).format("YYYY-MM-DD");
+        values.end_at = dayjs(end_at).add(1, "day").format("YYYY-MM-DD");
       }
       const query = queryString.stringify(values);
       const { data } = await dispatch(
@@ -45,25 +42,13 @@ const Comp = () => {
     if (activeKey === "3") {
       getData();
     }
-  }, [activeKey]);
-
-  // const onChange = (pagination, filters, sorter) => {
-  // setPagination(pagination);
-  // setFilters(filters);
-  // setSorter({ [sorter.field]: sorter.order });
-  // };
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onFinish = () => {
     getData();
   };
 
-  const options = {
-    guests: {
-      render: (val) => {
-        return val.length;
-      },
-    },
-  };
+  const options = {};
 
   return (
     <>
@@ -80,9 +65,9 @@ const Comp = () => {
       <Table
         columns={columns(options)}
         pagination={false}
+        rowKey="_id"
         dataSource={data}
         loading={loading}
-        // onChange={onChange}
       />
     </>
   );

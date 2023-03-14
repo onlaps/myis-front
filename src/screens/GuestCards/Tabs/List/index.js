@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Table, Form, Input, Button, Modal } from "antd";
-import { Menu, Dropdown, Popover } from "antd";
+import { Dropdown, Popover } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,7 +9,7 @@ import { SET_APP } from "@/actions/app";
 import Filters from "@/components/Filters";
 import queryString from "query-string";
 import { Context } from "../..";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { confirm } = Modal;
 
@@ -47,6 +47,12 @@ const Comp = () => {
 
   const cards = useSelector((state) => state.app.cards);
 
+  useEffect(() => {
+    if (activeKey === "1") {
+      getData();
+    }
+  }, [pagination.current, activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const getData = async () => {
     try {
       setLoading(true);
@@ -66,7 +72,6 @@ const Comp = () => {
 
   useEffect(() => {
     if (activeKey === "1") {
-      getData();
       getSources();
     }
   }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -101,27 +106,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -129,7 +129,19 @@ const Comp = () => {
     },
     birthdate: {
       render: (val) => {
-        if (val) return moment(val).format("DD.MM.YYYY");
+        if (val) return dayjs(val).format("DD.MM.YYYY");
+        return null;
+      },
+    },
+    first_visit: {
+      render: (val) => {
+        if (val) return dayjs(val).format("DD.MM.YYYY");
+        return null;
+      },
+    },
+    last_visit: {
+      render: (val) => {
+        if (val) return dayjs(val).format("DD.MM.YYYY");
         return null;
       },
     },

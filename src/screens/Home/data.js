@@ -1,7 +1,7 @@
 export const columns = [
   {
-    key: "place",
-    dataIndex: "place",
+    key: "name",
+    dataIndex: "name",
     title: "Товарная точка",
   },
   {

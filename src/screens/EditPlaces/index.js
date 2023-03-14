@@ -1,12 +1,13 @@
 import React, { createContext, useState, useEffect } from "react";
-import { Layout, Button, PageHeader, Table, Switch } from "antd";
-import { Dropdown, Menu, Modal } from "antd";
+import { Layout, Button, Table, Switch } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
+import { Dropdown, Modal } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
-import { SET_APP } from "@/actions/app";
+import { SET_APP, SET_APP_BY_PARAM } from "@/actions/app";
 
 export const Context = createContext();
 const { Content } = Layout;
@@ -15,15 +16,6 @@ const { confirm } = Modal;
 const Screen = (props) => {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [filters, setFilters] = useState(null);
-  const [sorter, setSorter] = useState(null);
-
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const [loading, setLoading] = useState(false);
 
@@ -79,9 +71,10 @@ const Screen = (props) => {
   const onUpdate = async (id, values) => {
     try {
       setLoading(true);
-      await dispatch(
+      const { data } = await dispatch(
         call({ url: `places/${id}`, method: "PATCH", data: values })
       );
+      dispatch(SET_APP_BY_PARAM(["places"], ["_id", id], data));
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -92,21 +85,16 @@ const Screen = (props) => {
     getData();
   }, []);
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     status: {
@@ -120,7 +108,7 @@ const Screen = (props) => {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -148,11 +136,11 @@ const Screen = (props) => {
           />
           <Content className="main__content__layout">
             <Table
-              columns={columns(options, filters, sorter)}
-              onChange={onChange}
-              pagination={pagination}
+              columns={columns(options)}
+              pagination={false}
               dataSource={places}
               rowKey="_id"
+              loading={loading}
             />
           </Content>
         </Layout>

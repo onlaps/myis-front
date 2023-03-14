@@ -1,29 +1,33 @@
 import React, { useContext, useEffect, useState } from "react";
 import _ from "lodash";
-import { Button, Dropdown, Popover, Table, Modal, Menu } from "antd";
+import { Button, Dropdown, Popover, Table, Modal } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { Context } from "../..";
 import { call } from "@/actions/axios";
+import queryString from "query-string";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
-  // const [filters, setFilters] = useState(null);
-  // const [pagination, setPagination] = useState(null);
-  // const [sorter, setSorter] = useState(null);
+  const [filters, setFilters] = useState(null);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    total: 10,
+  });
+  const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
+  const onChange = (pagination, filters, sorter) => {
+    setPagination(pagination);
+    setFilters(filters);
+    setSorter({ [sorter.field]: sorter.order });
+  };
 
   const dispatch = useDispatch();
   const promocodes = useSelector((state) => state.app.promocodes || []);
@@ -37,9 +41,13 @@ const Comp = () => {
 
   const getData = async () => {
     try {
+      const values = { page: pagination.current };
+      const query = queryString.stringify(values);
       setLoading(true);
-      const { data } = await dispatch(call({ url: `promocodes` }));
-      dispatch(SET_APP(["promocodes"], data));
+      const { data } = await dispatch(call({ url: `promocodes?${query}` }));
+      const { data: items, ...p } = data;
+      dispatch(SET_APP(["promocodes"], items));
+      setPagination(p);
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -83,27 +91,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -111,12 +114,12 @@ const Comp = () => {
     },
     createdAt: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY");
+        return dayjs(val).format("DD.MM.YYYY");
       },
     },
     due_to: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY");
+        return dayjs(val).format("DD.MM.YYYY");
       },
     },
     places: {
@@ -137,17 +140,27 @@ const Comp = () => {
         }
       },
     },
+    description: {
+      render: (val) => {
+        if (!val) return null;
+        return (
+          <Popover content={val} trigger="hover" placement="bottom">
+            <Button type="link">Посмотреть</Button>
+          </Popover>
+        );
+      },
+    },
   };
 
   return (
     <>
       <Table
-        columns={columns(options)}
-        // onChange={onChange}
+        columns={columns(options, filters, sorter)}
+        onChange={onChange}
         rowKey="_id"
         dataSource={promocodes}
         loading={loading}
-        pagination={false}
+        pagination={pagination}
       />
     </>
   );

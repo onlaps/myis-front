@@ -3,7 +3,6 @@ import { Row, Col, Card, List, Button } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
-import _ from "lodash";
 import CashEdit from "./CashEdit";
 import CardEdit from "./CardEdit";
 
@@ -24,14 +23,12 @@ const Report = () => {
       dispatch(SET_APP(["current_shift"], data));
     };
     getShift();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCashButton = () => {
     return (
       <Button type="link" onClick={() => setType("cash")}>
-        {_.isNumber(current_shift.balance)
-          ? current_shift.balance
-          : "Задать сумму"}
+        {current_shift.is_balance ? current_shift.balance : "Задать сумму"}
       </Button>
     );
   };
@@ -39,7 +36,7 @@ const Report = () => {
   const getCardButton = () => {
     return (
       <Button type="link" onClick={() => setType("card")}>
-        {_.isNumber(current_shift.card_balance)
+        {current_shift.card_balance
           ? current_shift.card_balance
           : "Задать сумму"}
       </Button>
@@ -59,30 +56,38 @@ const Report = () => {
         <Row gutter={20}>
           <Col span={12}>
             <Card title="Оплата наличными">
-              <ListItem
-                title="Сумма на начало"
-                value={current_shift.start_sum}
-              />
-              <ListItem
-                title="Выручка наличными"
-                value={current_shift.cash_receiptes}
-              />
-              <ListItem title="Внесения" value={current_shift.deposit} />
-              <ListItem title="Изъятия" value={current_shift.withdrawal} />
-              <ListItem
-                title="Должно остаться в кассе"
-                value={calculateCash()}
-              />
-              <ListItem title="Сумма на конец" value={getCashButton()} />
+              <List>
+                <ListItem
+                  title="Сумма на начало"
+                  value={current_shift.start_sum}
+                />
+                <ListItem
+                  title="Выручка наличными"
+                  value={current_shift.cash_receiptes}
+                />
+                <ListItem title="Расходы" value={current_shift.expenses} />
+                <ListItem title="Внесения" value={current_shift.deposit} />
+                <ListItem title="Изъятия" value={current_shift.withdrawal} />
+                <ListItem
+                  title="Должно остаться в кассе"
+                  value={calculateCash()}
+                />
+                <ListItem title="Сумма на конец" value={getCashButton()} />
+              </List>
             </Card>
           </Col>
           <Col span={12}>
             <Card title="Оплата по карте">
-              <ListItem
-                title="Выручка по карте"
-                value={current_shift.card_receiptes}
-              />
-              <ListItem title="Сумма по отчету банка" value={getCardButton()} />
+              <List>
+                <ListItem
+                  title="Выручка по карте"
+                  value={current_shift.card_receiptes}
+                />
+                <ListItem
+                  title="Сумма по отчету банка"
+                  value={getCardButton()}
+                />
+              </List>
             </Card>
           </Col>
         </Row>

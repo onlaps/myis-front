@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import _ from "lodash";
 import { Col, Input, Row } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
+import classNames from "classnames";
 
 const { Search } = Input;
 
@@ -13,8 +14,10 @@ const buttons = [
 ];
 
 const ValuePicker = (props) => {
-  const { onChange } = props;
+  const { onChange, loading } = props;
   const [value, setValue] = useState("0");
+
+  const input = useRef();
 
   const rows = () => {
     return buttons.map((row, index) => <Row key={index}>{numbers(row)}</Row>);
@@ -22,7 +25,14 @@ const ValuePicker = (props) => {
 
   const numbers = (row) => {
     return row.map((number, index) => (
-      <Col key={index} span={8} className="number_wrapper">
+      <Col
+        key={index}
+        span={8}
+        className={classNames({
+          number_wrapper: true,
+          number_loading: loading,
+        })}
+      >
         {isButton(number)}
       </Col>
     ));
@@ -52,9 +62,19 @@ const ValuePicker = (props) => {
     setValue(v);
   };
 
+  const onChangeInput = (e) => {
+    if (e.target.value === "") e.target.value = "0";
+    e.target.value = parseInt(e.target.value).toString();
+    setValue(e.target.value);
+  };
+
   useEffect(() => {
     onChange(value);
   }, [value]); // eslint-disable-line
+
+  useEffect(() => {
+    input.current.focus();
+  }, []);
 
   return (
     <div className="sum_picker">
@@ -64,6 +84,10 @@ const ValuePicker = (props) => {
             value={value}
             enterButton={<LeftOutlined />}
             onSearch={onSearch}
+            ref={input}
+            disabled={loading}
+            onBlur={() => !loading && input.current.focus()}
+            onChange={onChangeInput}
           />
           <div className="keyboard">{rows()}</div>
         </Col>

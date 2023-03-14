@@ -1,7 +1,8 @@
 import React, { createContext, useState } from "react";
 import _ from "lodash";
-import { Layout, PageHeader, Row, Col, Card, Button, notification } from "antd";
-import moment from "moment";
+import { Layout, Row, Col, Card, Button, notification } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
+import dayjs from "dayjs";
 import { useNavigate } from "react-router";
 import data from "./data";
 import { useSelector } from "react-redux";
@@ -24,7 +25,7 @@ const Screen = () => {
   };
 
   const getTitle = () => {
-    return `Смена - ${moment(current_shift.createdAt).format("DD.MM.YYYY")}`;
+    return `Смена - ${dayjs(current_shift.createdAt).format("DD.MM.YYYY")}`;
   };
 
   const onClick = (index) => () => {
@@ -33,12 +34,12 @@ const Screen = () => {
 
   const onClose = async () => {
     if (!_.isNumber(current_shift.balance)) {
-      return notification.warn({
+      return notification.warning({
         title: "Важно",
         message: "Укажите сумму наличных на конец смены",
       });
     } else if (!_.isNumber(current_shift.card_balance)) {
-      return notification.warn({
+      return notification.warning({
         title: "Важно",
         message: "Укажите сумму по отчету банка на конец смены",
       });

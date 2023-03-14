@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown, Table, Menu, Modal, Popover, Button } from "antd";
+import { Dropdown, Table, Modal, Popover, Button } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns, discount_types, types } from "./data";
 import { Context } from "../..";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import _ from "lodash";
@@ -29,7 +30,7 @@ const Comp = () => {
 
   useEffect(() => {
     if (activeKey === "1") {
-      getPlaces();
+      dispatch(GET_PLACES());
       getData();
     }
   }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -43,13 +44,6 @@ const Comp = () => {
     } catch (e) {
       setLoading(false);
     }
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
   };
 
   const onDelete = async (id) => {
@@ -82,27 +76,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );

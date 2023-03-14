@@ -1,6 +1,11 @@
 .sum_picker {
   .ant-list-item {
+    cursor: pointer;
     padding: 5px;
+    &.noteLoading {
+      background-color: #f0f0f0;
+      cursor: default;
+    }
   }
   .title {
     text-align: center;
@@ -26,6 +31,13 @@
           background-color: #777777;
         }
       }
+      &.number_loading {
+        .number {
+          background-color: #f0f0f0;
+          color: #dedede;
+          cursor: default;
+        }
+      }
     }
   }
   .note_amount {
@@ -36,8 +48,11 @@
   }
   .selectedNote {
     background-color: #1890ff;
+    &.noteLoading {
+      background-color: #95ccff;
+    }
     .ant-list-item-meta-title {
-      color: white;
+      color: white !important;
     }
   }
   .total {
@@ -47,6 +62,12 @@
     }
     .note_total {
       font-weight: bold;
+    }
+    .total_higher {
+      color: green;
+    }
+    .total_lower {
+      color: red;
     }
   }
 }

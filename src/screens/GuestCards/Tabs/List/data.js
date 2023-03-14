@@ -31,10 +31,6 @@ export const columns = (options, filters, sorter) => {
       title: "Последний визит",
     },
     {
-      dataIndex: "sum",
-      title: "Сумма",
-    },
-    {
       dataIndex: "description",
       title: "Комментарий",
     },

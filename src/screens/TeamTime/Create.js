@@ -6,39 +6,65 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
+import queryString from "query-string";
+import { GET_PLACES } from "@/actions/api";
+import { SET_APP } from "@/actions/app";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { confirm } = Modal;
 
 const Comp = (props) => {
   const context = useContext(Context);
   const { adding, setAdding, editing } = context;
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState(null);
   const [loading, setLoading] = useState(false);
   const form = useRef();
 
   const places = useSelector((state) => state.app.places || []);
-  const users = useSelector((state) => state.app.users || []);
 
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(GET_PLACES());
+    getUsers();
+  }, []); //eslint-disable-line
+
+  const getUsers = async () => {
+    try {
+      const { data } = await dispatch(call({ url: `users` }));
+      dispatch(SET_APP(["users"], data));
+    } catch (e) {}
+  };
+
+  useEffect(() => {
     if (form.current) {
-      form.current.resetFields();
-    }
-    if (editing) {
-      const values = { ...editing };
-      values.date = moment(values.date);
-      let hour, minute;
-      [hour, minute] = values.time_from.split(":");
-      const time_from = moment().set({ hour, minute });
-      values.time_from = time_from;
-      [hour, minute] = values.time_to.split(":");
-      const time_to = moment().set({ hour, minute });
-      values.time_to = time_to;
-      form.current.setFieldsValue(values);
+      if (editing) {
+        const values = { ...editing };
+        values.date = dayjs(values.date);
+        let hour, minute;
+        [hour, minute] = values.time_from.split(":");
+        const time_from = dayjs().hour(hour).minute(minute);
+        values.time_from = time_from;
+        [hour, minute] = values.time_to.split(":");
+        const time_to = dayjs().hour(hour).minute(minute);
+        values.time_to = time_to;
+        if (!_.isEmpty(values.user)) {
+          values.user = values.user._id;
+        }
+        form.current.setFieldsValue(values);
+      }
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (form.current) {
+      if (!adding) {
+        form.current.resetFields();
+      }
+    }
+  }, [adding]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
@@ -46,12 +72,9 @@ const Comp = (props) => {
     if (_.isEmpty(values.place)) values.place = null;
     else values.place = values.place._id;
 
-    if (_.isEmpty(values.user)) values.user = null;
-    else values.user = values.user._id;
-
-    values.date = moment(values.date).format("YYYY-MM-DD");
-    values.time_from = moment(values.time_from).format("HH:mm");
-    values.time_to = moment(values.time_to).format("HH:mm");
+    values.date = dayjs(values.date).format("YYYY-MM-DD");
+    values.time_from = dayjs(values.time_from).format("HH:mm");
+    values.time_to = dayjs(values.time_to).format("HH:mm");
 
     try {
       setLoading(true);
@@ -97,10 +120,21 @@ const Comp = (props) => {
     });
   };
 
+  const onSearch = async (search) => {
+    setSearch(search);
+    try {
+      const values = { page: 1, search };
+      const query = queryString.stringify(values);
+      const { data } = await dispatch(call({ url: `users?${query}` }));
+      const { data: items } = data;
+      setUsers(items);
+    } catch (e) {}
+  };
+
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
@@ -115,6 +149,7 @@ const Comp = (props) => {
           Сохранить
         </Button>,
       ]}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
@@ -133,16 +168,26 @@ const Comp = (props) => {
         </Form.Item>
         <Form.Item
           label="Сотрудник"
-          name={["user", "_id"]}
+          name="user"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
-          <Select disabled={loading}>
-            {users.map((v) => (
-              <Select.Option key={v._id} value={v._id}>
-                {v.name}
-              </Select.Option>
-            ))}
-          </Select>
+          <Select
+            options={users.map((v) => ({
+              value: v._id,
+              label: `${v.name} (${v.login})`,
+            }))}
+            style={{ width: "100%" }}
+            onSearch={onSearch}
+            defaultActiveFirstOption={false}
+            showArrow={false}
+            filterOption={false}
+            showSearch
+            disabled={loading}
+            placeholder="Введите текст для поиска"
+            notFoundContent={
+              users.length === 0 && search && "Нет данных по сотруднику"
+            }
+          />
         </Form.Item>
         <Form.Item
           label="Дата"

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Form, Input, Modal, Select, Row, Col, InputNumber } from "antd";
 import { Typography, Switch, Divider } from "antd";
-import { Upload, Menu, Dropdown } from "antd";
+// import { Upload, Menu, Dropdown } from "antd";
 import { Context } from ".";
 // import { InboxOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,7 +13,7 @@ const { Title } = Typography;
 
 const Comp = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding, editing, setEditing } = context;
+  const { adding, setAdding, editing } = context;
   const [loading, setLoading] = useState(false);
   const [path, setPath] = useState(null);
   const form = useRef();
@@ -23,7 +23,6 @@ const Comp = (props) => {
   const menu_categories = useSelector(
     (state) => state.app.menu_categories || []
   );
-  const places = useSelector((state) => state.app.places || []);
   const wh_items = useSelector((state) => state.app.wh_items || []);
 
   useEffect(() => {
@@ -47,9 +46,8 @@ const Comp = (props) => {
     if (!adding && form.current) {
       form.current.resetFields();
       setPath(null);
-      setEditing(null);
     }
-  }, [adding]);
+  }, [adding]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
@@ -144,34 +142,36 @@ const Comp = (props) => {
   //   />
   // );
 
+  const shouldUpdate = (i) => (pv, cv) => {
+    if (!pv || !cv) return false;
+    if (
+      pv?.item_prices &&
+      cv?.item_prices &&
+      pv?.item_prices[i]?.diff_price !== cv?.item_prices[i]?.diff_price
+    )
+      return true;
+    if (pv?.price !== cv?.price) return true;
+    return false;
+  };
+
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       width={700}
       onCancel={onCancel}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
-      <Form
-        layout="vertical"
-        ref={form}
-        initialValues={{
-          item_prices: places.map((v) => ({
-            place: v._id,
-            price: 0,
-            type: "2",
-            available: false,
-          })),
-        }}
-      >
+      <Form layout="vertical" ref={form}>
         <Form.Item
           label="Группа"
           name={["menu_category", "_id"]}
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
-          <Select placeholder="Выберите группу" disabled={loading}>
+          <Select placeholder="Выберите группу" disabled={loading || !!editing}>
             {menu_categories.map((v) => (
               <Select.Option key={v._id} value={v._id}>
                 {v.name}
@@ -184,9 +184,9 @@ const Comp = (props) => {
           name="type"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
-          <Select placeholder="Выберите тип" disabled={loading}>
-            <Select.Option value="1">Услуга</Select.Option>
+          <Select placeholder="Выберите тип" disabled={loading || !!editing}>
             <Select.Option value="2">Товар</Select.Option>
+            <Select.Option value="1">Услуга</Select.Option>
           </Select>
         </Form.Item>
         <Form.Item noStyle shouldUpdate={(pv, cv) => pv.type !== cv.type}>
@@ -201,7 +201,10 @@ const Comp = (props) => {
                     { required: true, message: "Данное поле обязательно" },
                   ]}
                 >
-                  <Select placeholder="Выберите товар" disabled={loading}>
+                  <Select
+                    placeholder="Выберите товар"
+                    disabled={loading || !!editing}
+                  >
                     {wh_items.map((v) => (
                       <Select.Option key={v._id} value={v._id}>
                         {v.name}
@@ -247,15 +250,6 @@ const Comp = (props) => {
               />
             </Form.Item>
           </Col>
-          <Col span={12}>
-            <Form.Item
-              name="custom_price"
-              label="Произвольная цена"
-              valuePropName="checked"
-            >
-              <Switch disabled={loading} />
-            </Form.Item>
-          </Col>
         </Row>
         <Form.Item label="Комментарий" name="description">
           <Input.TextArea disabled={loading} placeholder="Введите текст" />
@@ -283,73 +277,116 @@ const Comp = (props) => {
                 </p>
               </Upload.Dragger>
             )*/}
-        <Divider />
-        <Title level={5}>Цена на торговых точках</Title>
-        {places.map((v, i) => (
-          <div key={v._id}>
-            <Title level={5}>{v.name}</Title>
 
-            <Form.Item noStyle name={["item_prices", i, "place"]}>
-              <Input type="hidden" />
-            </Form.Item>
-            <Row gutter={20}>
-              <Col span={4}>
-                <Form.Item
-                  label="Другая цена"
-                  name={["item_prices", i, "available"]}
-                  valuePropName="checked"
-                >
-                  <Switch disabled={loading} />
-                </Form.Item>
-              </Col>
-              <Col span={10}>
-                <Form.Item
-                  noStyle
-                  shouldUpdate={(pv, cv) =>
-                    pv.item_prices[i]?.available !==
-                      cv.item_prices[i]?.available || pv.price !== cv.price
-                  }
-                >
-                  {(v) => {
-                    const items = v.getFieldValue("item_prices");
-                    const price = v.getFieldValue("price");
-                    const { available } = items[i];
-                    if (!available) {
-                      v.setFieldValue(["item_prices", i, "price"], price);
-                    }
-                    return (
-                      <Form.Item
-                        label="Цена"
-                        name={["item_prices", i, "price"]}
-                        rules={[
-                          {
-                            required: true,
-                            message: "Данное поле обязательно",
-                          },
-                        ]}
-                      >
-                        <InputNumber
-                          disabled={!available || loading}
-                          style={{ width: "100%" }}
-                          placeholder="Введите цену"
-                        />
-                      </Form.Item>
-                    );
-                  }}
-                </Form.Item>
-              </Col>
-              <Col span={10}>
-                <Form.Item label="Скидка" name={["item_prices", i, "type"]}>
-                  <Select placeholder="Выберите тип скидки" disabled={loading}>
-                    <Select.Option value="1">Разрешить</Select.Option>
-                    <Select.Option value="2">Запретить</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Divider />
-          </div>
-        ))}
+        <Form.Item
+          noStyle
+          shouldUpdate={(pv, cv) => pv.menu_category !== cv.menu_category}
+        >
+          {(v) => {
+            const menu_category = v.getFieldValue("menu_category");
+            if (!menu_category) return null;
+
+            const mc = _.find(menu_categories, { _id: menu_category._id });
+            if (!editing) {
+              v.setFieldValue(
+                ["item_prices"],
+                mc.places.map((v) => ({
+                  place: v._id,
+                  price: 0,
+                  type: "2",
+                  available: true,
+                  diff_price: false,
+                }))
+              );
+            }
+
+            return (
+              <>
+                <Divider />
+                <Title level={5}>Цена на торговых точках</Title>
+
+                {mc?.places.map((v, i) => (
+                  <div key={v._id}>
+                    <Title level={5}>{v.name}</Title>
+
+                    <Form.Item noStyle name={["item_prices", i, "place"]}>
+                      <Input type="hidden" />
+                    </Form.Item>
+                    <Row gutter={20}>
+                      <Col span={4}>
+                        <Form.Item
+                          label="Доступно"
+                          name={["item_prices", i, "available"]}
+                          valuePropName="checked"
+                        >
+                          <Switch disabled={loading} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={4}>
+                        <Form.Item
+                          label="Другая цена"
+                          name={["item_prices", i, "diff_price"]}
+                          valuePropName="checked"
+                        >
+                          <Switch disabled={loading} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item noStyle shouldUpdate={shouldUpdate(i)}>
+                          {(v) => {
+                            const items = v.getFieldValue("item_prices");
+                            const price = v.getFieldValue("price");
+                            const { diff_price } = items[i];
+                            console.log(items);
+                            if (!diff_price) {
+                              v.setFieldValue(
+                                ["item_prices", i, "price"],
+                                price
+                              );
+                            }
+                            return (
+                              <Form.Item
+                                label="Цена"
+                                name={["item_prices", i, "price"]}
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Данное поле обязательно",
+                                  },
+                                ]}
+                              >
+                                <InputNumber
+                                  disabled={!diff_price || loading}
+                                  style={{ width: "100%" }}
+                                  placeholder="Введите цену"
+                                />
+                              </Form.Item>
+                            );
+                          }}
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item
+                          label="Скидка"
+                          name={["item_prices", i, "type"]}
+                        >
+                          <Select
+                            placeholder="Выберите тип скидки"
+                            disabled={loading}
+                          >
+                            <Select.Option value="1">Разрешить</Select.Option>
+                            <Select.Option value="2">Запретить</Select.Option>
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                    <Divider />
+                  </div>
+                ))}
+              </>
+            );
+          }}
+        </Form.Item>
       </Form>
     </Modal>
   );

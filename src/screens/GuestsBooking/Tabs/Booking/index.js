@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Table, Form, DatePicker } from "antd";
-import { Select, Button, Dropdown, Menu, Modal } from "antd";
+import { Table, Form, DatePicker, Popover } from "antd";
+import { Select, Button, Dropdown, Modal } from "antd";
 import { columns } from "./data";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { call } from "@/actions/axios";
@@ -10,23 +10,14 @@ import queryString from "query-string";
 import Filters from "@/components/Filters";
 import { Context } from "../..";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
-  // const [filters, setFilters] = useState(null);
-  // const [pagination, setPagination] = useState(null);
-  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
 
   const dispatch = useDispatch();
 
@@ -48,6 +39,7 @@ const Comp = () => {
     try {
       setLoading(true);
       const values = await form.current.validateFields();
+      if (values.date) values.date = dayjs(values.date).format("YYYY-MM-DD");
       const query = queryString.stringify(values);
       const { data } = await dispatch(call({ url: `books?${query}` }));
       dispatch(SET_APP(["books"], data));
@@ -87,27 +79,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -126,13 +113,13 @@ const Comp = () => {
     },
     time: {
       render: (_, item) => {
-        const date = moment(item.date).format("DD.MM.YYYY");
+        const date = dayjs(item.date).format("DD.MM.YYYY");
         return `${date}, ${item.time_from} - ${item.time_to}`;
       },
     },
     createdAt: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY");
+        return dayjs(val).format("DD.MM.YYYY");
       },
     },
     user: {
@@ -147,6 +134,17 @@ const Comp = () => {
             <div>{item.phone}</div>
             <div>{item.name}</div>
           </>
+        );
+      },
+    },
+    description: {
+      render: (val) => {
+        if (!val) return null;
+
+        return (
+          <Popover content={val} trigger="hover" placement="bottom">
+            <Button type="link">Показать</Button>
+          </Popover>
         );
       },
     },
@@ -175,7 +173,6 @@ const Comp = () => {
       </Filters>
       <Table
         columns={columns(options)}
-        // onChange={onChange}
         rowKey="_id"
         dataSource={books}
         loading={loading}

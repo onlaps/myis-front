@@ -7,23 +7,7 @@ export const columns = (options, filters, sorter) => {
       dataIndex: "name",
     },
     {
-      title: "Торговые точки",
-      dataIndex: "places",
-    },
-    {
-      title: "С первого часа",
-      dataIndex: "first_hour",
-    },
-    {
-      title: "Со второго часа",
-      dataIndex: "second_hour",
-    },
-    {
-      title: "С третьего часа",
-      dataIndex: "third_hour",
-    },
-    {
-      title: "Остальные часы",
+      title: "Стоимость часа",
       dataIndex: "hour",
     },
     {

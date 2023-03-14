@@ -7,10 +7,6 @@ export const columns = (options, filters, sorter) => {
       title: "Название",
     },
     {
-      dataIndex: "positions",
-      title: "Позиции меню",
-    },
-    {
       dataIndex: "places",
       title: "Торговые точки",
     },

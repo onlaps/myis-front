@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Table, Modal, Menu, Dropdown } from "antd";
+import { Table, Modal, Dropdown } from "antd";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { columns } from "./data";
 import { Context } from "../../index";
@@ -14,14 +14,7 @@ const { confirm } = Modal;
 const Comp = () => {
   const context = useContext(Context);
   const { setAdding, activeKey, setEditing } = context;
-  const [filters, setFilters] = useState(null);
-  const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const onChange = (pagination, filters, sorter) => {
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const dispatch = useDispatch();
   const wh_units = useSelector((state) => state.app.wh_units || []);
@@ -30,7 +23,7 @@ const Comp = () => {
     if (activeKey === "2") {
       getData();
     }
-  }, [activeKey]);
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getData = async () => {
     try {
@@ -73,27 +66,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -109,8 +97,7 @@ const Comp = () => {
   return (
     <>
       <Table
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
         rowKey="_id"
         dataSource={wh_units}
         loading={loading}

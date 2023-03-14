@@ -7,7 +7,7 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 import _ from "lodash";
 import queryString from "query-string";
 import { useNavigate } from "react-router";
@@ -28,7 +28,6 @@ const Comp = (props) => {
 
   const wh_items = useSelector((state) => state.app.wh_items || []);
   const wh_reasons = useSelector((state) => state.app.wh_reasons || []);
-  const wh_units = useSelector((state) => state.app.wh_units || []);
 
   const getWhItems = async (values) => {
     try {
@@ -40,7 +39,7 @@ const Comp = (props) => {
 
   useEffect(() => {
     getWhItems({ place: current_place._id });
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (form.current && !type) {
@@ -52,14 +51,14 @@ const Comp = (props) => {
     const values = await form.current.validateFields();
 
     if (!values.items || values.items.length === 0) {
-      return notification.warn({
+      return notification.warning({
         message: "Отсутствуют позиции",
         description: "Добавьте позиции для сохранения",
       });
     }
 
-    const date = moment().format("YYYY-MM-DD");
-    const time = moment().format("HH:mm");
+    const date = dayjs().format("YYYY-MM-DD");
+    const time = dayjs().format("HH:mm");
 
     values.date = date;
     values.time = time;
@@ -95,7 +94,7 @@ const Comp = (props) => {
 
   const onFieldsChange = (field, fields) => {
     const [f] = field;
-    const [arr, index, name] = f.name;
+    const [, index, name] = f.name;
 
     if (["price", "total", "amount", "wh_item"].indexOf(name) !== -1) {
       let items;
@@ -154,7 +153,7 @@ const Comp = (props) => {
   return (
     <Modal
       title="Списание"
-      visible={type === "out"}
+      open={type === "out"}
       okText="Сохранить"
       onCancel={() => setType(null)}
       width={1000}

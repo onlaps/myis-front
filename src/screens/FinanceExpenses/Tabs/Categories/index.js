@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown, Menu, Table, Modal } from "antd";
+import { Dropdown, Table, Modal } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
@@ -12,17 +12,8 @@ const { confirm } = Modal;
 const Comp = () => {
   const { activeKey, setEditing, setAdding } = useContext(Context);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
 
   const dispatch = useDispatch();
-
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const expense_categories = useSelector(
     (state) => state.app.expense_categories || []
@@ -30,7 +21,7 @@ const Comp = () => {
 
   useEffect(() => {
     if (activeKey === "2") getData();
-  }, [activeKey]);
+  }, [activeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getData = async () => {
     try {
@@ -71,27 +62,22 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -115,8 +101,7 @@ const Comp = () => {
     <>
       <Table
         dataSource={expense_categories}
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
         rowKey="_id"
         loading={loading}
         pagination={false}

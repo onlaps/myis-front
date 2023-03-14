@@ -32,7 +32,7 @@ export const columns = (options, filters, sorter) => {
 
 export const types = [
   { name: "Выбор вручную", value: "1" },
-  { name: "Автоматический", value: "2" },
+  // { name: "Автоматический", value: "2" },
   { name: "По карте гостя", value: "3" },
   { name: "По промокоду", value: "4" },
   { name: "Недоступно", value: "5" },
@@ -47,10 +47,4 @@ export const discount_types = [
 export const menu_types = [
   { name: "Без ограничений", value: "1" },
   { name: "Только к выбранным категориям", value: "2" },
-];
-
-export const client_types = [
-  { name: "Доступно всем", value: "1" },
-  { name: "Доступно всем зарегистрированным клиентам", value: "2" },
-  { name: "Доступно только новым клиентам", value: "3" },
 ];

@@ -3,9 +3,10 @@ import { Card, Empty } from "antd";
 import { Loading } from "@/ui";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
-import moment from "moment";
+import dayjs from "dayjs";
 import queryString from "query-string";
 import { useDispatch, useSelector } from "react-redux";
+import _ from "lodash";
 
 const GuestCards = (props) => {
   const { onSelect } = props;
@@ -43,9 +44,9 @@ const GuestCards = (props) => {
 
   return (
     <Card className="room" bordered={false}>
-      {guests.map((guest) => {
+      {_.filter(guests, { assigned: false }).map((guest) => {
         const { table, createdAt, name } = guest;
-        const time = moment(createdAt).format("HH:mm");
+        const time = dayjs(createdAt).format("HH:mm");
         return (
           <Card.Grid
             key={createdAt}

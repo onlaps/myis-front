@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Button, Dropdown, Menu, Popover, Table } from "antd";
+import { Button, Dropdown, Popover, Table } from "antd";
 import { Modal } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,15 +31,8 @@ const Comp = () => {
   };
 
   useEffect(() => {
-    getPlaces();
+    dispatch(GET_PLACES());
   }, []);
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
-  };
 
   const getData = async () => {
     try {
@@ -86,21 +80,16 @@ const Comp = () => {
     getData();
   }, []); //eslint-disable-line
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     places: {
@@ -124,7 +113,7 @@ const Comp = () => {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );

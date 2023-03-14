@@ -1,39 +1,30 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Table, Form, DatePicker } from "antd";
-import { Button, Layout, PageHeader } from "antd";
+import { Button, Layout } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useNavigate } from "react-router";
 
 const { Content } = Layout;
 
 const Comp = () => {
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const form = useRef();
   const books = useSelector((state) => state.app.books || []);
-  const places = useSelector((state) => state.app.places || []);
 
   useEffect(() => {
     getData();
-  }, []);
+  }, []); //eslint-disable-line
 
   const onFinish = async () => {
     getData();
@@ -43,6 +34,7 @@ const Comp = () => {
     try {
       setLoading(true);
       const values = await form.current.validateFields();
+      values.date = dayjs(values.date).format("YYYY-MM-DD");
       const query = queryString.stringify(values);
       const { data } = await dispatch(call({ url: `books?${query}` }));
       dispatch(SET_APP(["books"], data));
@@ -66,13 +58,13 @@ const Comp = () => {
     },
     time: {
       render: (_, item) => {
-        const date = moment(item.date).format("DD.MM.YYYY");
+        const date = dayjs(item.date).format("DD.MM.YYYY");
         return `${date}, ${item.time_from} - ${item.time_to}`;
       },
     },
     createdAt: {
       render: (val) => {
-        return moment(val).format("DD.MM.YYYY");
+        return dayjs(val).format("DD.MM.YYYY");
       },
     },
     user: {
@@ -105,7 +97,7 @@ const Comp = () => {
           ref={form}
           layout="inline"
           onFinish={onFinish}
-          initialValues={{ date: moment() }}
+          initialValues={{ date: dayjs() }}
         >
           <Form.Item name="date">
             <DatePicker format="DD.MM.YYYY" />
@@ -117,12 +109,12 @@ const Comp = () => {
           </Form.Item>
         </Form>
         <Table
-          columns={columns(options, filters, sorter)}
-          onChange={onChange}
+          columns={columns(options)}
           rowKey="_id"
           dataSource={books}
           loading={loading}
           pagination={false}
+          size="small"
         />
       </Content>
     </Layout>

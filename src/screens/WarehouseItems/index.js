@@ -1,14 +1,17 @@
 import React, { createContext, useRef, useState, useEffect } from "react";
-import { Layout, Button, PageHeader, Table, Dropdown, Menu, Modal } from "antd";
+import { Layout, Button, Table, Dropdown, Modal } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Form, Select } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
+import { GET_PLACES } from "@/actions/api";
 import Create from "./Create";
 import History from "./History";
 import queryString from "query-string";
 import { useDispatch, useSelector } from "react-redux";
+import Filters from "@/components/Filters";
 import _ from "lodash";
 
 const { confirm } = Modal;
@@ -20,18 +23,9 @@ const Screen = (props) => {
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const form = useRef();
-  const [pagination, setPagination] = useState(null);
-  const [filters, setFilters] = useState(null);
-  const [sorter, setSorter] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(null);
-
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const dispatch = useDispatch();
 
@@ -44,7 +38,6 @@ const Screen = (props) => {
   }, [adding]);
 
   useEffect(() => {
-    console.log(history);
     if (!history) setEditing(null);
   }, [history]);
 
@@ -59,13 +52,6 @@ const Screen = (props) => {
     } catch (e) {
       setLoading(false);
     }
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: "places" }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
   };
 
   const getWhCategories = async () => {
@@ -83,11 +69,11 @@ const Screen = (props) => {
   };
 
   useEffect(() => {
-    getPlaces();
+    dispatch(GET_PLACES());
     getWhCategories();
     getWhUnits();
     getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDelete = async (id) => {
     try {
@@ -122,31 +108,26 @@ const Screen = (props) => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "История изменения",
-        },
-        {
-          key: "2",
-          label: "Редактировать",
-        },
-        {
-          key: "3",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "История изменения",
+    },
+    {
+      key: "2",
+      label: "Редактировать",
+    },
+    {
+      key: "3",
+      label: "Удалить",
+    },
+  ];
 
   const options = {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );
@@ -200,18 +181,9 @@ const Screen = (props) => {
             ]}
           />
           <Content className="main__content__layout">
-            <Form
-              style={{ marginBottom: 16 }}
-              ref={form}
-              layout="inline"
-              onFinish={onFinish}
-            >
+            <Filters ref={form} onFinish={onFinish}>
               <Form.Item name="place">
-                <Select
-                  style={{ width: 200 }}
-                  placeholder="Все торговые точки"
-                  allowClear
-                >
+                <Select style={{ width: 200 }} placeholder="Все торговые точки">
                   {places.map((v) => (
                     <Select.Option key={v._id} value={v._id}>
                       {v.name}
@@ -219,7 +191,7 @@ const Screen = (props) => {
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="item">
+              <Form.Item name="wh_category">
                 <Select
                   style={{ width: 200 }}
                   placeholder="Выберите из списка"
@@ -237,10 +209,9 @@ const Screen = (props) => {
                   Поиск
                 </Button>
               </Form.Item>
-            </Form>
+            </Filters>
             <Table
-              columns={columns(options, filters, sorter)}
-              onChange={onChange}
+              columns={columns(options)}
               pagination={false}
               rowKey="_id"
               dataSource={wh_items}

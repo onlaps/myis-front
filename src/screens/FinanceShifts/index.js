@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Layout, PageHeader, Tabs } from "antd";
+import { Layout, Tabs } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Shifts, Cash } from "./Tabs";
 
 const { Content } = Layout;
-const { TabPane } = Tabs;
 
 const Screen = (props) => {
   const [activeKey, setActiveKey] = useState("1");
@@ -12,18 +12,24 @@ const Screen = (props) => {
     setActiveKey(activeKey);
   };
 
+  const items = [
+    {
+      key: "1",
+      label: "Смены",
+      children: <Shifts />,
+    },
+    {
+      key: "2",
+      label: "Движение наличных",
+      children: <Cash />,
+    },
+  ];
+
   return (
     <Layout>
       <PageHeader title="История смен" ghost={false} />
       <Content className="main__content__layout">
-        <Tabs onTabClick={onTabClick} activeKey={activeKey}>
-          <TabPane tab="Смены" key="1">
-            <Shifts />
-          </TabPane>
-          <TabPane tab="Движение наличных" key="2">
-            <Cash />
-          </TabPane>
-        </Tabs>
+        <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
       </Content>
     </Layout>
   );

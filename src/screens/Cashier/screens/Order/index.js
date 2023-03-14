@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Table, List, Tag, Divider, Tooltip, Modal, message } from "antd";
-import { Button, Layout, PageHeader } from "antd";
+import { Table, List, Tag, Divider, Tooltip, message } from "antd";
+import { Button, Layout } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { columns } from "./data";
 import { CloseOutlined, UserOutlined } from "@ant-design/icons";
 import { CreditCardOutlined, WalletOutlined } from "@ant-design/icons";
-import { PercentageOutlined } from "@ant-design/icons";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,26 +12,17 @@ import queryString from "query-string";
 import _ from "lodash";
 import { useNavigate } from "react-router";
 import "./index.less";
-import GuestCards from "../Guests/GuestCards";
+import GuestSelect from "./GuestSelect";
 
 const { Content, Sider, Footer } = Layout;
 
 const Comp = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
-  // const [filters, setFilters] = useState(null);
-  // const [pagination, setPagination] = useState(null);
-  // const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
-  const [guestSelect, setGuestSelect] = useState(false);
+  const [guestVisible, setGuestVisible] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const key = "updatable";
-
-  // const onChange = (pagination, filters, sorter) => {
-  //   setPagination(pagination);
-  //   setFilters(filters);
-  //   setSorter({ [sorter.field]: sorter.order });
-  // };
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -121,6 +112,12 @@ const Comp = () => {
         return item.wh_item_prices[0].amount;
       },
     },
+    price: {
+      render: (val, item) => {
+        if (item.item_prices.length === 0) return null;
+        return item.item_prices[0].price;
+      },
+    },
     actions: {
       render: (_, item) => {
         let disabled = false;
@@ -129,6 +126,11 @@ const Comp = () => {
           if (item.wh_item_prices.length === 0) disabled = true;
           else if (item.wh_item_prices[0].amount <= 0) disabled = true;
         }
+
+        if (item.item_prices.length > 0) {
+          item.price = item.item_prices[0].price;
+        }
+
         return (
           <Button
             disabled={disabled}
@@ -168,7 +170,7 @@ const Comp = () => {
         content: "Обрабатываем...",
       });
       setLoading(true);
-      setGuestSelect(false);
+      setGuestVisible(false);
       await dispatch(call({ url: `orders`, method: "POST", data }));
       messageApi.open({
         key,
@@ -194,13 +196,13 @@ const Comp = () => {
     if (type === "card") {
       onPayment({ type });
     } else if (type === "guest") {
-      setGuestSelect(true);
+      setGuestVisible(true);
     } else if (type === "cash") {
       onPayment({ type });
     }
   };
 
-  const onSelect = (guest) => () => {
+  const onGuestSelect = (guest) => () => {
     const values = {
       guest,
       type: "guest",
@@ -211,19 +213,11 @@ const Comp = () => {
   return (
     <>
       {contextHolder}
-      <Modal
-        visible={guestSelect}
-        title="Выберите гостя"
-        onCancel={() => setGuestSelect(false)}
-        width="50%"
-        footer={[
-          <Button key="c" onClick={() => setGuestSelect(false)}>
-            Отмена
-          </Button>,
-        ]}
-      >
-        <GuestCards onSelect={onSelect} />
-      </Modal>
+      <GuestSelect
+        visible={guestVisible}
+        setVisible={setGuestVisible}
+        onSelect={onGuestSelect}
+      />
       <Layout>
         <PageHeader title="Продажа товаров" ghost={false} onBack={onBack} />
         <Content className="main__content__layout">
@@ -242,7 +236,6 @@ const Comp = () => {
           </div>
           <Table
             columns={columns(options)}
-            // onChange={onChange}
             rowKey="_id"
             dataSource={menu_items}
             loading={loading}
@@ -282,21 +275,26 @@ const Comp = () => {
           <Footer>
             <div className="ant-layout-content summary">
               <Divider />
-              <List.Item
-                actions={[
-                  <Tooltip placement="left" key="disc" title="Задать скидку">
-                    <Button
-                      type="link"
-                      disabled={loading || orders.length === 0}
-                    >
-                      <PercentageOutlined />
-                    </Button>
-                  </Tooltip>,
-                ]}
-              >
-                <List.Item.Meta title="Итого" />
-                <div>{_.sumBy(orders, (o) => o.amount * o.price)}₸</div>
-              </List.Item>
+              <List>
+                <List.Item
+                  actions={
+                    [
+                      // <Tooltip placement="left" key="disc" title="Задать скидку">
+                      //   <Button
+                      //     type="link"
+                      //     disabled={loading || orders.length === 0}
+                      //     onClick={() => setDiscountVisible(true)}
+                      //   >
+                      //     <PercentageOutlined />
+                      //   </Button>
+                      // </Tooltip>,
+                    ]
+                  }
+                >
+                  <List.Item.Meta title="Итого" />
+                  <div>{_.sumBy(orders, (o) => o.amount * o.price)}₸</div>
+                </List.Item>
+              </List>
               <Divider />
             </div>
             <div className="buttons">

@@ -7,7 +7,7 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 import { types } from "./data";
 import _ from "lodash";
 import { useNavigate } from "react-router";
@@ -26,17 +26,27 @@ const Comp = (props) => {
     (state) => state.app.expense_categories || []
   );
 
-  const users = useSelector((state) => state.app.users || []);
+  const exp_users = useSelector((state) => state.app.exp_users || []);
 
   const current_place = useSelector((state) => state.app.current_place);
   const current_shift = useSelector((state) => state.app.current_shift);
 
+  const getUsers = async () => {
+    try {
+      const { data } = await dispatch(call({ url: `users/all` }));
+      dispatch(SET_APP(["exp_users"], data));
+    } catch (e) {}
+  };
+
   useEffect(() => {
-    if (form.current && !type) {
+    if (form.current) {
       form.current.resetFields();
-      getExpenseCategories();
     }
-  }, [type]);
+    if (type === "exp") {
+      getExpenseCategories();
+      getUsers();
+    }
+  }, [type]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getExpenseCategories = async () => {
     try {
@@ -49,14 +59,14 @@ const Comp = (props) => {
     const values = await form.current.validateFields();
 
     if (!values.items || values.items.length === 0) {
-      return notification.warn({
+      return notification.warning({
         message: "Отсутствуют позиции",
         description: "Добавьте позиции для сохранения",
       });
     }
 
-    const date = moment().format("YYYY-MM-DD");
-    const time = moment().format("HH:mm");
+    const date = dayjs().format("YYYY-MM-DD");
+    const time = dayjs().format("HH:mm");
 
     values.date = date;
     values.time = time;
@@ -85,10 +95,14 @@ const Comp = (props) => {
     }
   };
 
+  const filterUsers = (o) => {
+    return o.places.indexOf(current_place._id) !== -1;
+  };
+
   return (
     <Modal
       title="Поступление"
-      visible={type === "in"}
+      open={type === "exp"}
       okText="Сохранить"
       onCancel={() => setType(null)}
       width={1000}
@@ -191,15 +205,17 @@ const Comp = (props) => {
                                       style={{ width: 250 }}
                                       disabled={loading}
                                     >
-                                      {users &&
-                                        users.map((v) => (
-                                          <Select.Option
-                                            key={v._id}
-                                            value={v._id}
-                                          >
-                                            {v.name}
-                                          </Select.Option>
-                                        ))}
+                                      {exp_users &&
+                                        _.filter(exp_users, filterUsers).map(
+                                          (v) => (
+                                            <Select.Option
+                                              key={v._id}
+                                              value={v._id}
+                                            >
+                                              {v.name}
+                                            </Select.Option>
+                                          )
+                                        )}
                                     </Select>
                                   </Form.Item>
                                 );

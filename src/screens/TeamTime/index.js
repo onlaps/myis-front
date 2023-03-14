@@ -1,14 +1,15 @@
 import React, { createContext, useEffect, useState } from "react";
-import { Button, Layout, PageHeader, Tabs } from "antd";
+import { Button, Layout, Tabs } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Shifts, Employees } from "./Tabs";
 import Create from "./Create";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { useDispatch } from "react-redux";
 import queryString from "query-string";
 
 const { Content } = Layout;
-const { TabPane } = Tabs;
 
 export const Context = createContext();
 
@@ -33,15 +34,8 @@ const Screen = () => {
 
   const getUsers = async () => {
     try {
-      const { data } = await dispatch(call({ url: "users" }));
+      const { data } = await dispatch(call({ url: "users/all" }));
       dispatch(SET_APP(["users"], data));
-    } catch (e) {}
-  };
-
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: "places" }));
-      dispatch(SET_APP(["places"], data));
     } catch (e) {}
   };
 
@@ -59,9 +53,22 @@ const Screen = () => {
 
   useEffect(() => {
     getUsers();
-    getPlaces();
+    dispatch(GET_PLACES());
     getData();
   }, [dataFilters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const items = [
+    {
+      key: "1",
+      label: "По сменам",
+      children: <Shifts />,
+    },
+    {
+      key: "2",
+      label: "По сотрудникам",
+      children: <Employees />,
+    },
+  ];
 
   return (
     <Layout>
@@ -88,14 +95,7 @@ const Screen = () => {
           }}
         >
           <Create />
-          <Tabs onTabClick={onTabClick} activeKey={activeKey}>
-            <TabPane tab="По сменам" key="1">
-              <Shifts />
-            </TabPane>
-            <TabPane tab="По сотрудникам" key="2">
-              <Employees />
-            </TabPane>
-          </Tabs>
+          <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
         </Context.Provider>
       </Content>
     </Layout>

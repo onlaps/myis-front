@@ -7,7 +7,7 @@ import { Context } from ".";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
-import moment from "moment";
+import dayjs from "dayjs";
 import _ from "lodash";
 import queryString from "query-string";
 
@@ -38,7 +38,7 @@ const Comp = (props) => {
     if (type === "out") {
       getWhItems({ place: places[0]?._id });
     }
-  }, [type, places]);
+  }, [type, places]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (form.current && !type) {
@@ -50,14 +50,14 @@ const Comp = (props) => {
     const values = await form.current.validateFields();
 
     if (!values.items || values.items.length === 0) {
-      return notification.warn({
+      return notification.warning({
         message: "Отсутствуют позиции",
         description: "Добавьте позиции для сохранения",
       });
     }
 
-    const date = moment(values.date).format("YYYY-MM-DD");
-    const time = moment(values.date).format("HH:mm");
+    const date = dayjs(values.date).format("YYYY-MM-DD");
+    const time = dayjs(values.date).format("HH:mm");
 
     values.date = date;
     values.time = time;
@@ -81,7 +81,7 @@ const Comp = (props) => {
 
   const onFieldsChange = (field, fields) => {
     const [f] = field;
-    const [arr, index, name] = f.name;
+    const [, index, name] = f.name;
 
     if (["price", "total", "amount", "wh_item"].indexOf(name) !== -1) {
       let items;
@@ -106,7 +106,7 @@ const Comp = (props) => {
           return name === "price";
         });
         const total = price.value * f.value;
-        console.log(index, total);
+
         if (_.isNumber(total) && items) {
           items[index].total = total;
 
@@ -143,11 +143,12 @@ const Comp = (props) => {
   return (
     <Modal
       title="Списание"
-      visible={type === "out"}
+      open={type === "out"}
       okText="Сохранить"
       onCancel={() => setType(null)}
       width={1000}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form
@@ -330,6 +331,7 @@ const Comp = (props) => {
                     <Button
                       type="primary"
                       onClick={() => add()}
+                      disabled={loading}
                       icon={<PlusOutlined />}
                     >
                       Добавить позицию

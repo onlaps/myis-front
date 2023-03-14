@@ -21,7 +21,7 @@ const Screen = () => {
   const onSubmit = async () => {
     setLoading(true);
     try {
-      const values = { card_balance: parseInt(sum) };
+      const values = { card_balance: parseInt(sum), is_card_balance: true };
       const { data } = await dispatch(
         call({
           url: `shifts/${current_shift._id}`,
@@ -42,7 +42,7 @@ const Screen = () => {
   return (
     <Modal
       okText="Сохранить"
-      visible={type === "card"}
+      open={type === "card"}
       okButtonProps={{ disabled: loading }}
       cancelButtonProps={{ disabled: loading }}
       onCancel={onCancel}
@@ -50,7 +50,7 @@ const Screen = () => {
       onOk={onSubmit}
       title="Сумма на конец"
     >
-      <ValuePicker onChange={onChange} />
+      <ValuePicker onChange={onChange} loading={loading} />
     </Modal>
   );
 };

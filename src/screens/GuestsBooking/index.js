@@ -1,15 +1,16 @@
 import React, { useState, createContext, useEffect } from "react";
-import { Layout, PageHeader, Tabs, Button } from "antd";
+import { Layout, Tabs, Button } from "antd";
+import { PageHeader } from "@ant-design/pro-layout";
 import { Booking, Tables, Statistic } from "./Tabs";
 import { useDispatch } from "react-redux";
 import { call } from "@/actions/axios";
+import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import Create from "./Create";
 
 export const Context = createContext();
 
 const { Content } = Layout;
-const { TabPane } = Tabs;
 
 const Screen = (props) => {
   const [activeKey, setActiveKey] = useState("1");
@@ -27,9 +28,9 @@ const Screen = (props) => {
 
   useEffect(() => {
     getRooms();
-    getPlaces();
+    dispatch(GET_PLACES());
     getCards();
-  }, []);
+  }, []); //eslint-disable-line
 
   const getCards = async () => {
     try {
@@ -45,12 +46,23 @@ const Screen = (props) => {
     } catch (e) {}
   };
 
-  const getPlaces = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `places` }));
-      dispatch(SET_APP(["places"], data));
-    } catch (e) {}
-  };
+  const items = [
+    {
+      key: "1",
+      label: "Список",
+      children: <Booking />,
+    },
+    {
+      key: "2",
+      label: "Статистика бронирований",
+      children: <Statistic />,
+    },
+    {
+      key: "3",
+      label: "Залы и столики",
+      children: <Tables />,
+    },
+  ];
 
   return (
     <Context.Provider
@@ -68,17 +80,7 @@ const Screen = (props) => {
           ]}
         />
         <Content className="main__content__layout">
-          <Tabs onTabClick={onTabClick} activeKey={activeKey}>
-            <TabPane tab="Бронирование" key="1">
-              <Booking />
-            </TabPane>
-            <TabPane tab="Статистика бронирований" key="2">
-              <Statistic />
-            </TabPane>
-            <TabPane tab="Залы и столики" key="3">
-              <Tables />
-            </TabPane>
-          </Tabs>
+          <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
         </Content>
       </Layout>
     </Context.Provider>

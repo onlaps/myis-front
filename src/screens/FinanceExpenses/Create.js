@@ -9,7 +9,7 @@ import { call } from "@/actions/axios";
 import { types } from "./Tabs/Expenses/data";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 
@@ -25,7 +25,7 @@ const Comp = (props) => {
 
 const Categories = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding, editing, setEditing } = context;
+  const { adding, setAdding, editing } = context;
   const [loading, setLoading] = useState(false);
   const form = useRef();
   const dispatch = useDispatch();
@@ -43,7 +43,6 @@ const Categories = (props) => {
   useEffect(() => {
     if (!adding && form.current) {
       form.current.resetFields();
-      setEditing(null);
     }
   }, [adding]);
 
@@ -79,10 +78,11 @@ const Categories = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onOk={onSubmit}
       okButtonProps={{ loading }}
+      cancelButtonProps={{ loading }}
       onCancel={() => setAdding(false)}
     >
       <Form layout="vertical" ref={form}>
@@ -121,7 +121,7 @@ const Categories = (props) => {
 
 const Expenses = (props) => {
   const context = useContext(Context);
-  const { adding, setAdding, editing, setEditing } = context;
+  const { adding, setAdding, editing } = context;
   const [loading, setLoading] = useState(false);
   const form = useRef();
   const dispatch = useDispatch();
@@ -131,7 +131,7 @@ const Expenses = (props) => {
   );
 
   const places = useSelector((state) => state.app.places || []);
-  const users = useSelector((state) => state.app.users || []);
+  const exp_users = useSelector((state) => state.app.exp_users || []);
 
   useEffect(() => {
     if (form.current) {
@@ -144,17 +144,18 @@ const Expenses = (props) => {
   }, [editing]);
 
   useEffect(() => {
-    if (!adding && form.current) {
-      form.current.resetFields();
-      setEditing(null);
+    if (form.current) {
+      if (!adding) {
+        form.current.resetFields();
+      }
     }
-  }, [adding]);
+  }, [adding]); //eslint-disable-line
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
-    const date = moment(values.date).format("YYYY-MM-DD");
-    const time = moment(values.time).format("HH:mm");
+    const date = dayjs(values.date).format("YYYY-MM-DD");
+    const time = dayjs(values.time).format("HH:mm");
 
     values.date = date;
     values.time = time;
@@ -175,10 +176,11 @@ const Expenses = (props) => {
   return (
     <Modal
       title="Поступление"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onOk={onSubmit}
       okButtonProps={{ loading }}
+      cancelButtonProps={{ loading }}
       onCancel={() => setAdding(false)}
       width={1000}
     >
@@ -313,8 +315,8 @@ const Expenses = (props) => {
                                       style={{ width: 250 }}
                                       disabled={loading}
                                     >
-                                      {users &&
-                                        users.map((v) => (
+                                      {exp_users &&
+                                        exp_users.map((v) => (
                                           <Select.Option
                                             key={v._id}
                                             value={v._id}

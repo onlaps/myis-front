@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import { withAuth } from "./auth";
 
-import "antd/dist/antd.less";
+import "antd/dist/reset.css";
 import "./App.less";
 
 import Home from "./screens/Home";

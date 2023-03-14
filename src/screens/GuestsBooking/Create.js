@@ -7,11 +7,12 @@ import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import MaskedInput from "antd-mask-input";
 import { Context } from ".";
+import queryString from "query-string";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import _ from "lodash";
-import moment from "moment";
+import dayjs from "dayjs";
 import { SketchPicker } from "react-color";
 import "./index.less";
 
@@ -28,6 +29,7 @@ const Comp = (props) => {
 const Booking = (props) => {
   const context = useContext(Context);
   const { adding, setAdding, editing } = context;
+  const [cards, setCards] = useState([]);
   const [search, setSearch] = useState(null);
   const [card, setCard] = useState(null);
   const [place, setPlace] = useState(null);
@@ -35,7 +37,6 @@ const Booking = (props) => {
   const [loading, setLoading] = useState(false);
   const form = useRef();
 
-  const cards = useSelector((state) => state.app.cards || []);
   const rooms = useSelector((state) => state.app.rooms || []);
   const places = useSelector((state) => state.app.places || []);
 
@@ -47,14 +48,14 @@ const Booking = (props) => {
     }
     if (editing) {
       const values = { ...editing };
-      values.date = moment(values.date);
+      values.date = dayjs(values.date);
       let hour, minute;
       const time = [];
       [hour, minute] = values.time_from.split(":");
-      const time_from = moment().set({ hour, minute });
+      const time_from = dayjs().hour(hour).minute(minute);
       time.push(time_from);
       [hour, minute] = values.time_to.split(":");
-      const time_to = moment().set({ hour, minute });
+      const time_to = dayjs().hour(hour).minute(minute);
       time.push(time_to);
       values.time = time;
       if (values.card) {
@@ -77,10 +78,10 @@ const Booking = (props) => {
     if (_.isEmpty(values.place)) values.place = null;
     else values.place = values.place._id;
 
-    values.date = moment(values.date).format("YYYY-MM-DD");
+    values.date = dayjs(values.date).format("YYYY-MM-DD");
     const [from, to] = values.time;
-    values.time_from = moment(from).format("HH:mm");
-    values.time_to = moment(to).format("HH:mm");
+    values.time_from = dayjs(from).format("HH:mm");
+    values.time_to = dayjs(to).format("HH:mm");
 
     if (card) {
       values.card = card._id;
@@ -119,7 +120,7 @@ const Booking = (props) => {
 
   useEffect(() => {
     if (card) {
-      form.current.setFieldsValue(card);
+      form.current.setFieldsValue({ card });
     }
   }, [card]);
 
@@ -129,15 +130,38 @@ const Booking = (props) => {
     else if (field.name[0] === "place") setPlace(field.value);
   };
 
+  const onSearch = async (search) => {
+    setSearch(search);
+    try {
+      const values = { page: 1, search };
+      const query = queryString.stringify(values);
+      const { data } = await dispatch(call({ url: `cards?${query}` }));
+      const { data: items } = data;
+      setCards(items);
+    } catch (e) {}
+  };
+
   const filteredRooms = _.filter(rooms, { place });
+
+  const renderItem = (v) => {
+    const text = [`#${v.number}`];
+
+    if (v?.last_name) text.push(v.last_name);
+    if (v?.name) text.push(v.name);
+
+    if (v?.phone) text.push(`(${v.phone})`);
+
+    return text.join(" ");
+  };
 
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form} onFieldsChange={onFieldsChange}>
@@ -216,20 +240,28 @@ const Booking = (props) => {
         >
           <InputNumber style={{ width: "100%" }} disabled={loading} min={1} />
         </Form.Item>
-        <Form.Item label="Сумма предоплаты" name="prepay">
+        <Form.Item
+          label="Сумма предоплаты"
+          name="prepay"
+          rules={[{ required: true, message: "Данное поле обязательно" }]}
+        >
           <InputNumber style={{ width: "100%" }} disabled={loading} min={0} />
         </Form.Item>
         <Title level={5}>Контакты</Title>
         <Form.Item label="Карта гостя" name="card">
           <AutoComplete
-            options={_.filter(
-              cards,
-              (o) => o.number.indexOf(search) !== -1
-            ).map((c) => ({ value: c.number }))}
+            options={cards.map((c) => ({
+              value: c.number,
+              label: renderItem(c),
+            }))}
             style={{ width: "100%" }}
             onSelect={onSelect}
-            onSearch={(v) => setSearch(v)}
+            onSearch={onSearch}
             disabled={loading}
+            placeholder="Введите текст для поиска"
+            notFoundContent={
+              cards.length === 0 && search && "Нет данных по карте"
+            }
           />
         </Form.Item>
         <Form.Item
@@ -289,7 +321,7 @@ const Tables = (props) => {
     const values = await form.current.validateFields();
 
     if (!values.tables || !values.tables.length) {
-      return notification.warn({
+      return notification.warning({
         message: "Важно",
         description: "Добавьте столики",
       });
@@ -320,10 +352,11 @@ const Tables = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>

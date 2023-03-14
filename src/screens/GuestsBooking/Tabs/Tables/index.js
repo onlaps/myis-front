@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Button, Dropdown, Form, Menu, Select, Table, Modal } from "antd";
+import { Button, Dropdown, Form, Select, Table, Modal } from "antd";
 import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
@@ -82,21 +82,16 @@ const Comp = () => {
     }
   };
 
-  const menu = (item) => (
-    <Menu
-      onClick={onClick(item)}
-      items={[
-        {
-          key: "1",
-          label: "Редактировать",
-        },
-        {
-          key: "2",
-          label: "Удалить",
-        },
-      ]}
-    />
-  );
+  const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
+    {
+      key: "2",
+      label: "Удалить",
+    },
+  ];
 
   const rooms = useSelector((state) => state.app.rooms || []);
   const places = useSelector((state) => state.app.places || []);
@@ -120,7 +115,7 @@ const Comp = () => {
     actions: {
       render: (_, item) => {
         return (
-          <Dropdown overlay={menu(item)}>
+          <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
           </Dropdown>
         );

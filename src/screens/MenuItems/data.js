@@ -11,7 +11,7 @@ export const columns = (options, filters, sorter) => {
       title: "Себестоимость, ₸",
     },
     {
-      dataIndex: "price",
+      dataIndex: "item_price",
       title: "Цена, ₸",
     },
     {

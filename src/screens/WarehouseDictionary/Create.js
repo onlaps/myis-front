@@ -68,7 +68,7 @@ const Group = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding && activeKey === "1"}
+      open={adding && activeKey === "1"}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
@@ -136,10 +136,11 @@ const Unit = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding && activeKey === "2"}
+      open={adding && activeKey === "2"}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form} initialValues={{ type: "1" }}>
@@ -238,10 +239,11 @@ const Reason = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding && activeKey === "3"}
+      open={adding && activeKey === "3"}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>

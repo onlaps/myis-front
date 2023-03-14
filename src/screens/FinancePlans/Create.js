@@ -1,12 +1,11 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Form, Input, Modal, Select, Checkbox, TimePicker } from "antd";
-import { Switch, InputNumber, Row, Col } from "antd";
-import moment from "moment";
+import { Form, Input, Modal, Checkbox } from "antd";
+import { Switch, InputNumber } from "antd";
+import dayjs from "dayjs";
 import { call } from "@/actions/axios";
 import { PUSH_APP, SET_APP_BY_PARAM } from "@/actions/app";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Context } from ".";
-import _ from "lodash";
 
 const Comp = (props) => {
   const context = useContext(Context);
@@ -14,9 +13,7 @@ const Comp = (props) => {
   const [loading, setLoading] = useState(false);
   const form = useRef();
 
-  const days = moment.weekdaysShort(true);
-
-  const places = useSelector((state) => state.app.places || []);
+  const days = dayjs.weekdaysMin(true);
 
   const dispatch = useDispatch();
 
@@ -26,6 +23,7 @@ const Comp = (props) => {
     }
     if (editing) {
       const values = { ...editing };
+
       form.current.setFieldsValue(values);
     }
   }, [editing]);
@@ -58,10 +56,11 @@ const Comp = (props) => {
   return (
     <Modal
       title="Создать"
-      visible={adding}
+      open={adding}
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
+      cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
       <Form layout="vertical" ref={form}>
@@ -71,20 +70,6 @@ const Comp = (props) => {
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Input disabled={loading} placeholder="Введите текст" />
-        </Form.Item>
-        <Form.Item label="Торговые точки" name="places">
-          <Select
-            allowClear
-            disabled={loading}
-            placeholder="Доступно для всех точек"
-          >
-            {places &&
-              places.map((v) => (
-                <Select.Option key={v._id} value={v._id}>
-                  {v.name}
-                </Select.Option>
-              ))}
-          </Select>
         </Form.Item>
         <Form.Item
           label="Дни недели"
@@ -99,61 +84,8 @@ const Comp = (props) => {
             ))}
           </Checkbox.Group>
         </Form.Item>
-        <Row gutter={20}>
-          <Col span={12}>
-            <Form.Item label="Время от" name="time_from">
-              <TimePicker
-                disabled={loading}
-                style={{ width: "100%" }}
-                placeholder="С открытия"
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="Время до" name="time_to">
-              <TimePicker
-                disabled={loading}
-                style={{ width: "100%" }}
-                placeholder="До закрытия"
-              />
-            </Form.Item>
-          </Col>
-        </Row>
         <Form.Item
-          label="Первый час"
-          name="first_hour"
-          rules={[{ required: true, message: "Данное поле обязательно" }]}
-        >
-          <InputNumber
-            disabled={loading}
-            addonAfter="₸/мин"
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Второй час"
-          name="second_hour"
-          rules={[{ required: true, message: "Данное поле обязательно" }]}
-        >
-          <InputNumber
-            disabled={loading}
-            addonAfter="₸/мин"
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Третий час"
-          name="third_hour"
-          rules={[{ required: true, message: "Данное поле обязательно" }]}
-        >
-          <InputNumber
-            disabled={loading}
-            addonAfter="₸/мин"
-            style={{ width: "100%" }}
-          />
-        </Form.Item>
-        <Form.Item
-          label="Остальные часы"
+          label="Стоимость часа"
           name="hour"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
