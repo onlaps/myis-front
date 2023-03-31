@@ -74,7 +74,7 @@ const Comp = () => {
     },
     user: {
       render: (val) => {
-        return val.name;
+        return val?.name;
       },
     },
     discount: {
@@ -92,7 +92,9 @@ const Comp = () => {
       render: (_, item) => {
         if (!item?.items) return null;
         const data = item.items.map((v) => (
-          <div>{`${v.menu_item.name} (${v.amount} x ${v.price})₸`}</div>
+          <div
+            key={v._id}
+          >{`${v.menu_item.name} (${v.amount} x ${v.price})₸`}</div>
         ));
         return (
           <Popover content={data} placement="bottom">

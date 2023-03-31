@@ -126,14 +126,14 @@ const Comp = (props) => {
         </Form.Item>
         <Form.Item
           label="Применять скидки к минимуму (иначе минимум остается вне зависимости от наличия скидки)"
-          name="apply_discount_min"
+          name="use_min"
           valuePropName="checked"
         >
           <Switch disabled={loading} />
         </Form.Item>
         <Form.Item
           label="Применять скидки к максимуму (иначе максимум остается вне зависимости от наличия скидки)"
-          name="apply_discount_max"
+          name="use_max"
           valuePropName="checked"
         >
           <Switch disabled={loading} />

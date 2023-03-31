@@ -159,7 +159,6 @@ const Comp = (props) => {
       title="Создать"
       open={adding}
       okText="Сохранить"
-      width={700}
       onCancel={onCancel}
       onOk={onSubmit}
       cancelButtonProps={{ loading }}
@@ -322,7 +321,7 @@ const Comp = (props) => {
                           <Switch disabled={loading} />
                         </Form.Item>
                       </Col>
-                      <Col span={4}>
+                      <Col span={6}>
                         <Form.Item
                           label="Другая цена"
                           name={["item_prices", i, "diff_price"]}
@@ -331,13 +330,13 @@ const Comp = (props) => {
                           <Switch disabled={loading} />
                         </Form.Item>
                       </Col>
-                      <Col span={8}>
+                      <Col span={14}>
                         <Form.Item noStyle shouldUpdate={shouldUpdate(i)}>
                           {(v) => {
                             const items = v.getFieldValue("item_prices");
                             const price = v.getFieldValue("price");
                             const { diff_price } = items[i];
-                            console.log(items);
+
                             if (!diff_price) {
                               v.setFieldValue(
                                 ["item_prices", i, "price"],
@@ -365,7 +364,7 @@ const Comp = (props) => {
                           }}
                         </Form.Item>
                       </Col>
-                      <Col span={8}>
+                      {/* <Col span={8}>
                         <Form.Item
                           label="Скидка"
                           name={["item_prices", i, "type"]}
@@ -378,7 +377,7 @@ const Comp = (props) => {
                             <Select.Option value="2">Запретить</Select.Option>
                           </Select>
                         </Form.Item>
-                      </Col>
+                      </Col> */}
                     </Row>
                     <Divider />
                   </div>

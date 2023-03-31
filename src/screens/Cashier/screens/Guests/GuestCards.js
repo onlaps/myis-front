@@ -13,14 +13,14 @@ const GuestCards = (props) => {
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
-  const current_shift = useSelector((state) => state.app.current_shift);
+  const current_place = useSelector((state) => state.app.current_place);
   const guests = useSelector((state) => state.app.guests || []);
 
   useEffect(() => {
     const getData = async () => {
       try {
         setLoading(true);
-        const values = { shift: current_shift._id };
+        const values = { place: current_place._id };
 
         const query = queryString.stringify(values);
 
@@ -32,7 +32,7 @@ const GuestCards = (props) => {
       }
     };
     getData();
-  }, []);
+  }, []); //eslint-disable-line
 
   if (loading && guests.length === 0) return <Loading />;
   else if (guests.length === 0) return <Empty description="Нет гостей" />;

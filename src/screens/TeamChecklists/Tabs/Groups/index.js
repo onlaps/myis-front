@@ -12,16 +12,7 @@ const { confirm } = Modal;
 const Comp = () => {
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
-  const [filters, setFilters] = useState(null);
-  const [pagination, setPagination] = useState(null);
-  const [sorter, setSorter] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const onChange = (pagination, filters, sorter) => {
-    setPagination(pagination);
-    setFilters(filters);
-    setSorter({ [sorter.field]: sorter.order });
-  };
 
   const dispatch = useDispatch();
   const checklist_categories = useSelector(
@@ -33,7 +24,7 @@ const Comp = () => {
       getDiscounts();
       getData();
     }
-  }, [activeKey]);
+  }, [activeKey]); //eslint-disable-line
 
   const getData = async () => {
     try {
@@ -111,8 +102,7 @@ const Comp = () => {
   return (
     <>
       <Table
-        columns={columns(options, filters, sorter)}
-        onChange={onChange}
+        columns={columns(options)}
         rowKey="_id"
         dataSource={checklist_categories}
         loading={loading}

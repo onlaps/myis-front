@@ -193,11 +193,14 @@ const Comp = () => {
   };
 
   const onPaymentSelect = (type) => () => {
-    if (type === "card") {
+    if (type === "2") {
+      //card
       onPayment({ type });
-    } else if (type === "guest") {
+    } else if (type === "3") {
+      //guest
       setGuestVisible(true);
-    } else if (type === "cash") {
+    } else if (type === "1") {
+      //cash
       onPayment({ type });
     }
   };
@@ -205,7 +208,7 @@ const Comp = () => {
   const onGuestSelect = (guest) => () => {
     const values = {
       guest,
-      type: "guest",
+      type: "3",
     };
     onPayment(values);
   };
@@ -301,7 +304,7 @@ const Comp = () => {
               <Button
                 type="primary"
                 disabled={loading || orders.length === 0}
-                onClick={onPaymentSelect("cash")}
+                onClick={onPaymentSelect("1")}
               >
                 <WalletOutlined />
                 Наличные
@@ -309,7 +312,7 @@ const Comp = () => {
               <Button
                 type="primary"
                 disabled={loading || orders.length === 0}
-                onClick={onPaymentSelect("card")}
+                onClick={onPaymentSelect("2")}
               >
                 <CreditCardOutlined />
                 Картой
@@ -317,7 +320,7 @@ const Comp = () => {
               <Button
                 type="primary"
                 disabled={loading || orders.length === 0}
-                onClick={onPaymentSelect("guest")}
+                onClick={onPaymentSelect("3")}
               >
                 <UserOutlined />
                 На гостя

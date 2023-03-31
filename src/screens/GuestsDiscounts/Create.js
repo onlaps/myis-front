@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Checkbox, Form, Input, InputNumber } from "antd";
-import { Modal, Select, Switch } from "antd";
-import { Typography, DatePicker, Row, Col, TimePicker } from "antd";
+import { Modal, Select, Typography, DatePicker } from "antd";
+// import {  Switch, Row, Col, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { Context } from ".";
 import { call } from "@/actions/axios";
@@ -39,13 +39,13 @@ const Discount = (props) => {
     if (form.current) {
       if (editing) {
         const values = { ...editing };
-        let hour, minute;
-        [hour, minute] = values.time_from.split(":");
-        const time_from = dayjs().hour(hour).minute(minute);
-        values.time_from = time_from;
-        [hour, minute] = values.time_to.split(":");
-        const time_to = dayjs().hour(hour).minute(minute);
-        values.time_to = time_to;
+        // let hour, minute;
+        // [hour, minute] = values.time_from.split(":");
+        // const time_from = dayjs().hour(hour).minute(minute);
+        // values.time_from = time_from;
+        // [hour, minute] = values.time_to.split(":");
+        // const time_to = dayjs().hour(hour).minute(minute);
+        // values.time_to = time_to;
         if (!_.isEmpty(values.places)) {
           values.places = values.places.map((v) => v._id);
         }
@@ -66,8 +66,8 @@ const Discount = (props) => {
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
-    values.time_from = dayjs(values.time_from).format("HH:mm");
-    values.time_to = dayjs(values.time_to).format("HH:mm");
+    // values.time_from = dayjs(values.time_from).format("HH:mm");
+    // values.time_to = dayjs(values.time_to).format("HH:mm");
 
     try {
       setLoading(true);
@@ -245,7 +245,7 @@ const Discount = (props) => {
                   >
                     <Checkbox.Group>
                       {days.map((d, i) => (
-                        <Checkbox key={d} value={i + 1}>
+                        <Checkbox key={d} value={i + 1} disabled={loading}>
                           {d}
                         </Checkbox>
                       ))}
@@ -256,7 +256,7 @@ const Discount = (props) => {
             }
           }}
         </Form.Item>
-        <Row gutter={20}>
+        {/* <Row gutter={20}>
           <Col span={12}>
             <Form.Item
               label="Время от"
@@ -283,7 +283,7 @@ const Discount = (props) => {
               />
             </Form.Item>
           </Col>
-        </Row>
+        </Row> */}
         <Title level={5}>Прочее</Title>
         <Form.Item
           label="Минимальная сумма чека"
@@ -308,13 +308,13 @@ const Discount = (props) => {
             ))}
           </Select>
         </Form.Item>
-        <Form.Item
+        {/* <Form.Item
           label="Указывать комментарий"
           name="comment"
           valuePropName="checked"
         >
           <Switch />
-        </Form.Item>
+        </Form.Item> */}
       </Form>
     </Modal>
   );
@@ -375,6 +375,19 @@ const Promocode = (props) => {
     }
   };
 
+  const onFieldsChange = (field) => {
+    let [
+      {
+        name: [name],
+        value,
+      },
+    ] = field;
+    if (name === "code") {
+      value = value.trim().replace(/[\W_]+/g, "");
+      form.current.setFieldsValue({ code: value.toUpperCase() });
+    }
+  };
+
   return (
     <Modal
       title="Создать"
@@ -385,19 +398,22 @@ const Promocode = (props) => {
       cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
-      <Form layout="vertical" ref={form}>
+      <Form layout="vertical" ref={form} onFieldsChange={onFieldsChange}>
         <Form.Item
           label="Скидка"
           name="discount"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <Select disabled={loading} placeholder="Выберите скидку">
-            {discounts.map((v) => (
+            {_.filter(discounts, { type: "4" }).map((v) => (
               <Select.Option key={v._id} value={v._id}>
                 {v.name}
               </Select.Option>
             ))}
           </Select>
+        </Form.Item>
+        <Form.Item label="Промокод" name="code">
+          <Input placeholder="Введите текст" disabled={loading} />
         </Form.Item>
         <Form.Item
           label="Актуален до"

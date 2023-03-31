@@ -114,6 +114,13 @@ const Categories = (props) => {
         >
           <Switch />
         </Form.Item>
+        <Form.Item
+          label="Доступно в отчетах"
+          name="reported"
+          valuePropName="checked"
+        >
+          <Switch />
+        </Form.Item>
       </Form>
     </Modal>
   );

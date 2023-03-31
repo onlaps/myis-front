@@ -149,7 +149,7 @@ const Checklists = (props) => {
         <Form.Item label="Дни недели" name="days_of_week">
           <Checkbox.Group>
             {days.map((d, i) => (
-              <Checkbox key={d} value={i + 1}>
+              <Checkbox key={d} value={i + 1} disabled={loading}>
                 {d}
               </Checkbox>
             ))}

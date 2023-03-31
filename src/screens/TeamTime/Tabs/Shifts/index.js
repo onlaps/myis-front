@@ -3,9 +3,10 @@ import { Form, Table, Select, DatePicker, Button } from "antd";
 import { Popover } from "antd";
 import { columns } from "./data";
 import dayjs from "dayjs";
+import { SET_APP } from "@/actions/app";
 import _ from "lodash";
 import { Context } from "../..";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Filters from "@/components/Filters";
 import usePrevious from "@/hooks/usePrevious";
 import Immutable from "immutable";
@@ -25,10 +26,16 @@ const Comp = () => {
   const schedules = useSelector((state) => state.app.schedules || []);
   const date = useSelector((state) => state.app.date);
 
+  const dispatch = useDispatch();
+
   const items = _.groupBy(schedules, "shift_number");
 
   const _items = usePrevious(items);
   const _dataFilters = usePrevious(dataFilters);
+
+  useEffect(() => {
+    dispatch(SET_APP(["schedules"], []));
+  }, []); //eslint-disable-line
 
   useEffect(() => {
     if (!_.isEmpty(dataFilters)) {

@@ -15,6 +15,10 @@ export const columns = (options, filters, sorter) => {
       title: "Доступно в смене",
     },
     {
+      dataIndex: "reported",
+      title: "Доступно в отчетах",
+    },
+    {
       dataIndex: "actions",
     },
   ];

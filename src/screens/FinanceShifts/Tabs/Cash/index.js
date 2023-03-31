@@ -126,6 +126,7 @@ const Comp = () => {
         columns={columns(options, filters, sorter)}
         pagination={pagination}
         onChange={onChange}
+        className="shift_cash"
         rowKey="_id"
         dataSource={shift_cash}
         loading={loading}

@@ -83,7 +83,7 @@ const Screen = (props) => {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, []); //eslint-disable-line
 
   const items = [
     {

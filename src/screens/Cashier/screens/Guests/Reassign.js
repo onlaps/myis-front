@@ -7,10 +7,10 @@ import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 
 const Reassign = (props) => {
-  const { visible, setVisible, guest, setGuest } = props;
+  const { visible, setVisible, guest, setGuest, selected } = props;
   const [loading, setLoading] = useState(false);
 
-  const [selected, setSelected] = useState(null);
+  const [assign, setAssign] = useState(null);
   const guests = useSelector((state) => state.app.guests || []);
 
   const guestToOption = (guests) => {
@@ -19,20 +19,20 @@ const Reassign = (props) => {
       return {
         value: _id,
         label: name,
-        disabled: _id === guest._id || assigned,
+        disabled: _id === guest._id || assigned || selected.indexOf(_id) !== -1,
       };
     });
   };
 
   const dispatch = useDispatch();
 
-  const onOk = async () => {
+  const onSubmit = async () => {
     try {
       setLoading(true);
 
       const values = {
-        guest,
-        assign: selected,
+        guests: selected,
+        assign,
         date: dayjs().format("YYYY-MM-DD HH:mm"),
       };
 
@@ -53,16 +53,16 @@ const Reassign = (props) => {
         title="Записать на другого"
         open={visible}
         zIndex={1001}
-        onOk={onOk}
+        onOk={onSubmit}
         onCancel={() => setVisible(false)}
-        okButtonProps={{ loading, disabled: !selected }}
+        okButtonProps={{ loading, disabled: !assign }}
         cancelButtonProps={{ loading }}
       >
         <Select
           style={{ width: "100%" }}
-          value={selected}
+          value={assign}
           options={guestToOption(guests)}
-          onChange={(e) => setSelected(e)}
+          onChange={(e) => setAssign(e)}
           disabled={loading}
         />
       </Modal>

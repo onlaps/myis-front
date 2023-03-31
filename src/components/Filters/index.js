@@ -28,7 +28,7 @@ const Filters = forwardRef((props, ref) => {
     if (!period || period.length === 0) {
       dispatch(SET_APP(["period"], [current_date, current_date]));
     }
-  }, []);
+  }, []); //eslint-disable-line
 
   useEffect(() => {
     const values = {};

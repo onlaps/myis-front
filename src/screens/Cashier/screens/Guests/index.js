@@ -1,22 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Layout, Card, Button, Select, Typography } from "antd";
-import { Row, Col, List } from "antd";
+import { Row, Col, List, InputNumber } from "antd";
 import { PageHeader } from "@ant-design/pro-layout";
-import { Table, Popover, notification } from "antd";
+import { Table, Popover, notification, Tooltip, message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
+import { DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
-import { REMOVE_APP_BY_PARAM, SET_APP } from "@/actions/app";
+import { REMOVE_APP_BY_PARAM } from "@/actions/app";
+import { CreditCardOutlined, WalletOutlined } from "@ant-design/icons";
 import NewGuest from "../NewGuest";
 import DiscountSelect from "./DiscountSelect";
 import dayjs from "dayjs";
-import _, { max, min } from "lodash";
+import _ from "lodash";
 import GuestCards from "./GuestCards";
 import Move from "./Move";
 import Reassign from "./Reassign";
 import Promocode from "./Promocode";
 import Prepaid from "./Prepaid";
+import Pause from "./Pause";
+import Tariff from "./Tariff";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -77,7 +81,13 @@ const Comp = () => {
 const GuestPage = (props) => {
   const { guest, setGuest, guestOpenTime } = props;
 
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const cash = useRef();
+  const card = useRef();
+
   const [loading, setLoading] = useState(false);
+  // const [comment, setComment] = useState(null);
   const [discountVisible, setDiscountVisible] = useState(false);
   const [discount, setDiscount] = useState(null);
   const [moveVisible, setMoveVisible] = useState(false);
@@ -88,6 +98,8 @@ const GuestPage = (props) => {
 
   const [prepaidVisible, setPrepaidVisible] = useState(false);
   const [prepaid, setPrepaid] = useState(null);
+  const [cashValue, setCashValue] = useState(0);
+  const [cardValue, setCardValue] = useState(0);
 
   const guestToOption = (guests) => {
     return _.filter(guests, (o) => o.table._id === guest.table._id).map((g) => {
@@ -105,23 +117,14 @@ const GuestPage = (props) => {
   const [selected, setSelected] = useState([guest._id, ...guest.guests]);
   const [tariff, setTariff] = useState(guest.room.tariff);
 
+  const current_shift = useSelector((state) => state.app.current_shift);
   const guests = useSelector((state) => state.app.guests || []);
   const guestList = _.filter(guests, (o) => selected.indexOf(o._id) !== -1);
-  const tariffs = useSelector((state) => state.app.tariffs || []);
 
   const onBack = () => {
     if (loading) return;
     setGuest(null);
   };
-
-  useEffect(() => {
-    const getData = async () => {
-      const { data } = await dispatch(call({ url: `tariffs` }));
-
-      dispatch(SET_APP(["tariffs"], data));
-    };
-    getData();
-  }, []);
 
   const onDelete = async () => {
     try {
@@ -143,70 +146,66 @@ const GuestPage = (props) => {
     if (!guest) return;
     const time = dayjs().diff(dayjs(guest.createdAt), "minutes");
 
+    const MIN = 5;
+    const isDisabled = time > MIN;
+
+    let title = `После ${MIN} мин невозможно удалить`;
+    if (!isDisabled) title = "";
+
     return (
-      <Button
-        danger
-        ghost
-        key="delete"
-        disabled={time > 5 || loading}
-        onClick={onDelete}
-      >
-        Удалить
-      </Button>
+      <Tooltip key="delete" placement="bottom" title={title}>
+        <Button
+          danger
+          ghost
+          disabled={isDisabled || loading}
+          onClick={onDelete}
+        >
+          Удалить
+        </Button>
+      </Tooltip>
     );
   };
 
   const onChange = (value) => {
-    setSelected(value);
+    let selected = [];
+    value.forEach((_id) => {
+      const guest = _.find(guests, { _id });
+      if (!guest.assigned) {
+        selected.push(_id);
+        if (guest.guests.length > 0) {
+          selected = [...selected, ...guest.guests];
+        }
+      }
+    });
+
+    setSelected(selected);
   };
 
-  const calculateTime = (item, with_discount = false) => {
-    let rate = 1;
-    let duration = 0;
+  // useEffect(() => {
+  //   if (!discount) setComment(null);
+  // }, [discount]);
 
+  const calculateTime = (item) => {
     const start_at = dayjs(item.createdAt);
     let end_at;
     if (item.closedAt) {
       end_at = dayjs(item.closedAt);
-    } else end_at = dayjs(guestOpenTime);
-
-    if (with_discount) {
-      if (discount) {
-        const dow = dayjs().day();
-        const day = dow === 0 ? 7 : dow;
-        if (discount.days.indexOf(day) !== -1) {
-          let hour, minute;
-          [hour, minute] = discount.time_from.split(":");
-          let d_start_at = dayjs().set("hour", hour).set("minute", minute);
-          [hour, minute] = discount.time_to.split(":");
-          let d_end_at = dayjs().set("hour", hour).set("minute", minute);
-
-          const isBefore = start_at.isBefore(d_start_at);
-          const isAfter = end_at.isAfter(d_end_at);
-          rate = (100 - discount.discount) / 100;
-
-          if (isBefore) {
-            duration = d_start_at.diff(start_at, "minutes");
-            if (!isAfter) {
-              duration += d_end_at.diff(d_start_at, "minutes") * rate;
-            } else {
-              duration += d_end_at.diff(d_start_at, "minutes") * rate;
-              duration += end_at.diff(d_end_at, "minutes");
-            }
-          } else if (!isBefore) {
-            if (isAfter) {
-              duration = d_end_at.diff(start_at, "minutes") * rate;
-              duration += end_at.diff(d_end_at, "minutes");
-            } else {
-              duration = end_at.diff(start_at, "minutes") * rate;
-            }
-          }
-        }
-      }
     } else {
-      duration = end_at.diff(start_at, "minutes");
+      if (item.pausedAt) {
+        end_at = dayjs(item.pausedAt);
+      } else {
+        end_at = dayjs(guestOpenTime);
+      }
     }
-    return duration * tariff?.hour;
+
+    const duration = end_at.diff(start_at, "minutes");
+
+    let sum = duration * tariff.hour;
+
+    if (sum < tariff.min) sum = tariff.min;
+    else if (sum > tariff.max) sum = tariff.max;
+
+    return { duration, sum };
   };
 
   const options = {
@@ -216,27 +215,50 @@ const GuestPage = (props) => {
         let end_at;
         if (item.closedAt) {
           end_at = dayjs(item.closedAt).format("HH:mm");
-        } else end_at = dayjs(guestOpenTime).format("HH:mm");
+        } else {
+          if (item.pausedAt) {
+            end_at = dayjs(item.pausedAt).format("HH:mm");
+          } else {
+            end_at = dayjs(guestOpenTime).format("HH:mm");
+          }
+        }
         return `${start_at} - ${end_at}`;
       },
     },
     timemoney: {
       render: (val, item) => {
-        return calculateTime(item);
+        return calculateTime(item).sum;
       },
     },
     items: {
       render: (val) => {
-        if (!_.isArray(val) || val.length === 0) return 0;
+        if (val.length === 0) return null;
+
+        const renderItem = (v) => {
+          if (v.wh_item) {
+            return (
+              <div key={v._id}>
+                {v.wh_item.name} ({v.amount} x {v.wh_item.wh_unit.name}) -{" "}
+                {v.total} ₸
+              </div>
+            );
+          } else if (v.expense_category) {
+            return (
+              <div key={v._id}>
+                {v.expense_category.name} - {v.total} ₸
+              </div>
+            );
+          } else if (v.menu_item) {
+            return (
+              <div key={v._id}>
+                {v.menu_item.name} ({v.amount} x {v.price}) - {v.total} ₸
+              </div>
+            );
+          }
+        };
         return (
           <Popover
-            content={val.map((v) => {
-              return (
-                <div key={v._id}>
-                  {v.wh_item.name} ({v.amount} x {v.price})
-                </div>
-              );
-            })}
+            content={val.map(renderItem)}
             trigger="hover"
             placement="bottom"
           >
@@ -253,24 +275,71 @@ const GuestPage = (props) => {
     total: {
       render: (val, item) => {
         return (
-          calculateTime(item) + _.sumBy(item.items, (o) => o.amount * o.price)
+          calculateTime(item).sum +
+          _.sumBy(item.items, (o) => o.amount * o.price)
         );
       },
     },
   };
 
-  const sumByItems = (with_discount = false) => {
-    const sum = _.sumBy(guestList, (gl) => {
-      return _.sumBy(gl.items, (o) => o.amount * o.price);
+  const sumByItemsTotal = () => {
+    let sum = _.sumBy(guestList, (g) => {
+      return _.sumBy(g.items, (o) => {
+        return o.amount * o.price;
+      });
     });
 
     return sum;
   };
 
-  const sumByHours = (with_discount = false) => {
-    const sum = _.sumBy(guestList, (gl) => {
-      return calculateTime(gl, with_discount);
+  const sumByItems = () => {
+    let sum = _.sumBy(guestList, (g) => {
+      return _.sumBy(g.items, (o) => {
+        let d = 1;
+        if (discount) {
+          if (discount.discount_type !== "2") {
+            if (discount.discount_type.menu_type === "1") {
+              d = discountValue();
+            } else if (discount.menu_categories.indexOf(o.menu_category)) {
+              d = discountValue();
+            }
+          }
+        }
+        return o.amount * o.price * d;
+      });
     });
+
+    return sum;
+  };
+
+  const discountValue = () => {
+    if (discount) {
+      return (100 - discount.discount) / 100;
+    }
+    return 1;
+  };
+
+  const sumByHoursTotal = () => {
+    return _.sumBy(guestList, (g) => {
+      return calculateTime(g).sum;
+    });
+  };
+
+  const sumByHours = () => {
+    let sum = _.sumBy(guestList, (g) => {
+      return calculateTime(g).sum;
+    });
+
+    if (discount && discount.discount_type !== "3") {
+      if (
+        (!tariff.use_max && !tariff.use_min) ||
+        (tariff.use_max && sum >= tariff.max) ||
+        (tariff.use_min && sum <= tariff.min) ||
+        (discount && sum >= discount.min)
+      ) {
+        sum = sum * discountValue();
+      }
+    }
 
     return sum;
   };
@@ -278,22 +347,105 @@ const GuestPage = (props) => {
   const total = () => {
     let sum = sumByItems() + sumByHours();
 
-    if (discount) {
-      if (sum > discount.min) {
-        sum = sumByItems(true) + sumByHours(true);
-      }
+    if (prepaid) {
+      sum = sum - prepaid.prepay;
     }
 
-    // const rounded = Math.round(sum / tariff?.round) * tariff.round;
-    // if (rounded > tariff.max) return tariff.max;
+    const rounded = Math.ceil(sum / tariff?.round) * tariff.round;
 
-    // if (rounded < min) return tariff.min;
+    return rounded;
+  };
 
-    return sum;
+  const onDeleteDiscount = () => {
+    setDiscount(null);
+    setPromocode(null);
+  };
+
+  const key = "updatable";
+
+  const onSubmit = async () => {
+    const sum = cashValue + cardValue;
+    if (total() !== sum) {
+      return notification.warning({
+        message: "Не совпадают суммы!",
+        description: "Проверьте корректность введенных данных",
+      });
+    }
+
+    const data = {
+      cashValue,
+      cardValue,
+      itemsSum: sumByItems(),
+      hoursSum: sumByHours(),
+      itemsSumTotal: sumByItemsTotal(),
+      hoursSumTotal: sumByHoursTotal(),
+      guests: guestList.map((g) => ({
+        ...g,
+        ...calculateTime(g),
+        item_service_sum: _.sumBy(g.items, (o) => {
+          let d = 1;
+          if (discount) {
+            if (discount.discount_type !== "2") {
+              if (discount.discount_type.menu_type === "1") {
+                d = discountValue();
+              } else if (discount.menu_categories.indexOf(o.menu_category)) {
+                d = discountValue();
+              }
+            }
+          }
+          return o.amount * o.price * d;
+        }),
+      })),
+      prepaid,
+      discount: discount?._id,
+      promocode,
+      guestOpenTime,
+      shift: current_shift._id,
+      place: current_shift?.place?._id,
+      tariff: tariff?._id,
+    };
+
+    try {
+      setLoading(true);
+      messageApi.open({
+        key,
+        type: "loading",
+        content: "Обрабатываем...",
+      });
+      await dispatch(call({ url: `guests/cashout`, method: "POST", data }));
+      messageApi.open({
+        key,
+        type: "success",
+        content: "Готово!",
+        duration: 2,
+      });
+      setGuest(null);
+    } catch (e) {
+      console.log(e.message);
+      setLoading(false);
+      messageApi.open({
+        key,
+        type: "error",
+        content: "Ошибка!",
+        duration: 2,
+      });
+    }
+  };
+
+  const setValue = (type) => (v) => {
+    const diff = (a, b) => (a - b < 0 ? 0 : a - b);
+    if (type === "cash") {
+      setCashValue(v);
+      setCardValue(diff(total(), v));
+    } else {
+      setCardValue(v);
+      setCashValue(diff(total(), v));
+    }
   };
 
   return (
     <>
+      {contextHolder}
       <Layout>
         <Move
           visible={moveVisible}
@@ -305,6 +457,7 @@ const GuestPage = (props) => {
           visible={reasVisible}
           setVisible={setReasVisible}
           guest={guest}
+          selected={selected}
           setGuest={setGuest}
         />
         <Promocode
@@ -325,11 +478,17 @@ const GuestPage = (props) => {
           onBack={onBack}
           extra={[
             deleteButton(),
+            <Pause
+              key="pause"
+              guest={guest}
+              setGuest={setGuest}
+              loading={loading}
+            />,
             <Button
               ghost
               type="primary"
               key="reassign"
-              loading={loading}
+              disabled={loading}
               onClick={() => setReasVisible(true)}
             >
               Записать на другого
@@ -338,7 +497,7 @@ const GuestPage = (props) => {
               ghost
               type="primary"
               key="move"
-              loading={loading}
+              disabled={loading}
               onClick={() => setMoveVisible(true)}
             >
               Переместить
@@ -351,6 +510,7 @@ const GuestPage = (props) => {
           onSelect={(v) => setDiscount(v)}
           selected={discount}
           orders={[]}
+          guest={guest}
         />
         <Content className="main__content__layout">
           <Row gutter={[20, 20]} style={{ marginBottom: 16 }}>
@@ -369,37 +529,38 @@ const GuestPage = (props) => {
                   disabled={loading}
                 />
               </Card>
-              <Card title={`Тариф`} style={{ marginBottom: 16 }}>
-                <Title level={5}>Выберите тариф</Title>
-                <Select
-                  style={{ width: "100%" }}
-                  value={tariff._id}
-                  onChange={(_id) => setTariff(_.find(tariffs, { _id }))}
-                  disabled={loading}
-                >
-                  {tariffs.map((v) => (
-                    <Select.Option key={v._id} value={v._id}>
-                      {v.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Card>
+              <Tariff tariff={tariff} setTariff={setTariff} loading={loading} />
               <Card title={`Скидка`}>
                 <Title level={5}>
                   {discount
                     ? `${discount.name} (${discount.discount}%)`
                     : "Скидка не выбрана"}
                 </Title>
-                <Button type="link" onClick={() => setDiscountVisible(true)}>
+                <Button
+                  type="link"
+                  onClick={() => setDiscountVisible(true)}
+                  disabled={loading}
+                >
                   Изменить
                 </Button>
                 <Button
                   type="link"
-                  disabled={!discount}
-                  onClick={() => setDiscount(null)}
+                  disabled={!discount || loading}
+                  onClick={onDeleteDiscount}
                 >
                   Убрать скидку
                 </Button>
+                {/*discount && discount.comment && (
+                  <>
+                    <Divider />
+                    <Input.TextArea
+                      comment={comment}
+                      onChange={setComment}
+                      disabled={comment}
+                      placeholder="Введите комментарий"
+                    />
+                  </>
+                )*/}
               </Card>
             </Col>
             <Col span={12}>
@@ -414,7 +575,7 @@ const GuestPage = (props) => {
               </Card>
             </Col>
             <Col span={6}>
-              <Card title={`Расчет`} style={{ marginBottom: 16 }}>
+              <Card title="Расчет" style={{ marginBottom: 16 }}>
                 <List itemLayout="horizontal">
                   <List.Item>
                     <List.Item.Meta title="Сумма за товары" />
@@ -430,15 +591,30 @@ const GuestPage = (props) => {
                   </List.Item>
                   <List.Item>
                     <List.Item.Meta title="Промокод" />
-                    <Button type="link" onClick={() => setPromoVisible(true)}>
+                    <Button
+                      type="link"
+                      onClick={() => setPromoVisible(true)}
+                      disabled={loading}
+                    >
                       {promocode ? promocode.code : "Ввести промокод"}
                     </Button>
                   </List.Item>
                   <List.Item>
                     <List.Item.Meta title="Предоплата" />
-                    <Button type="link" onClick={() => setPrepaidVisible(true)}>
+                    <Button
+                      type="link"
+                      onClick={() => setPrepaidVisible(true)}
+                      disabled={loading}
+                    >
                       {prepaid ? prepaid.prepay : "Найти предоплату"}
                     </Button>
+
+                    {prepaid && (
+                      <DeleteOutlined
+                        onClick={() => setPrepaid(null)}
+                        disabled={loading}
+                      />
+                    )}
                   </List.Item>
                 </List>
               </Card>
@@ -450,6 +626,48 @@ const GuestPage = (props) => {
                   </List.Item>
                 </List>
               </Card>
+              <InputNumber
+                ref={cash}
+                size="large"
+                placeholder="Введите сумму наличных"
+                style={{ marginTop: 16, width: "100%" }}
+                addonBefore={
+                  <div style={{ width: 120, textAlign: "right" }}>
+                    <WalletOutlined />
+                    <span style={{ marginLeft: 5 }}>Наличными:</span>
+                  </div>
+                }
+                value={cashValue}
+                onChange={setValue("cash")}
+                disabled={loading}
+                min={0}
+              />
+              <InputNumber
+                ref={card}
+                size="large"
+                placeholder="Введите сумму по карте"
+                style={{ marginTop: 16, width: "100%" }}
+                addonBefore={
+                  <div style={{ width: 120, textAlign: "right" }}>
+                    <CreditCardOutlined />
+                    <span style={{ marginLeft: 5 }}>Картой:</span>
+                  </div>
+                }
+                value={cardValue}
+                onChange={setValue("card")}
+                disabled={loading}
+                min={0}
+              />
+              <Button
+                type="primary"
+                size="large"
+                block
+                disabled={loading}
+                onClick={onSubmit}
+                style={{ marginTop: 16 }}
+              >
+                Рассчитать
+              </Button>
             </Col>
           </Row>
         </Content>

@@ -7,7 +7,6 @@ import Create from "./Create";
 export const Context = createContext();
 
 const { Content } = Layout;
-const { TabPane } = Tabs;
 
 const Screen = (props) => {
   const [activeKey, setActiveKey] = useState("1");

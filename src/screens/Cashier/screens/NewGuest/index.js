@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Modal, Segmented, List, Tooltip } from "antd";
-import { Checkbox, Input, Card } from "antd";
+import { Checkbox, Input, Card, message } from "antd";
 import MaskedInput from "antd-mask-input";
 import { SearchOutlined } from "@ant-design/icons";
 import { call } from "@/actions/axios";
@@ -9,6 +9,7 @@ import { PUSH_APP } from "@/actions/app";
 import queryString from "query-string";
 import { useDispatch, useSelector } from "react-redux";
 import { Loading } from "@/ui";
+import dayjs from "dayjs";
 import _ from "lodash";
 import "./index.less";
 
@@ -30,7 +31,7 @@ const NewGuest = (props) => {
     if (step === 1) return "Далее";
   };
 
-  const onOk = async () => {
+  const onSubmit = async () => {
     if (step === 1) setStep(2);
     else {
       try {
@@ -62,7 +63,7 @@ const NewGuest = (props) => {
 
   const handleKeyUp = (e) => {
     if (e.keyCode === 13) {
-      onOk();
+      onSubmit();
     }
   };
 
@@ -93,7 +94,7 @@ const NewGuest = (props) => {
       okButtonProps={{ disabled: setDisabled(), loading }}
       cancelButtonProps={{ disabled: loading }}
       onCancel={() => setNewGuest(false)}
-      onOk={onOk}
+      onOk={onSubmit}
     >
       <CTX.Provider
         value={{
@@ -133,7 +134,7 @@ const Find = () => {
   useEffect(() => {
     setClient(null);
     setUnknown(null);
-  }, [tab]);
+  }, [tab]); //eslint-disable-line
 
   return (
     <>
@@ -170,7 +171,7 @@ const ByPhone = () => {
       timer.current = setTimeout(onSearch, 500);
     }
     if (!searching) setCompleted(false);
-  }, [searching, value]);
+  }, [searching, value]); //eslint-disable-line
 
   const onSearch = async () => {
     setLoading(true);
@@ -313,6 +314,7 @@ const Unknown = () => {
 
 export const Table = (props) => {
   const { selected, setSelected, loading: $loading } = props;
+  const [messageApi, contextHolder] = message.useMessage();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -334,46 +336,67 @@ export const Table = (props) => {
   };
   useEffect(() => {
     getRooms();
-  }, []);
+  }, []); //eslint-disable-line
 
   const gridStyle = {
     width: "25%",
     textAlign: "center",
   };
 
-  const onClick = (table) => () => {
+  const onClick = (table, room) => () => {
     if ($loading) return;
-    setSelected(table);
+    const dow = dayjs().day();
+    const day = dow === 0 ? 6 : dow;
+
+    const isEnabled = room.tariff.days_of_week.indexOf(day) !== -1;
+
+    if (isEnabled) {
+      setSelected(table);
+    } else {
+      messageApi.open({
+        type: "warning",
+        content: "На текущий день недоступен тарифный план под данный зал",
+      });
+    }
   };
 
   if (loading) return <Loading />;
 
-  return Object.keys(rooms).map((key) => {
-    const room = rooms[key][0];
-    return (
-      <div key={key}>
-        <Card title={key} className="room" bordered={false}>
-          {room.tables.map((table) => {
-            const classNames = ["table"];
-            if (selected && selected._id === table._id)
-              classNames.push("selected");
-            return (
-              <Card.Grid
-                key={table._id}
-                className={classNames.join(" ")}
-                style={{ ...gridStyle, backgroundColor: table.color }}
-                onClick={onClick(table)}
-              >
-                {`#${table.number}`}
-                <br />
-                {`${table.name}`}
-              </Card.Grid>
-            );
-          })}
-        </Card>
-      </div>
-    );
-  });
+  const render = () => {
+    return Object.keys(rooms).map((key) => {
+      const room = rooms[key][0];
+      return (
+        <div key={key}>
+          <Card title={key} className="room" bordered={false}>
+            {room.tables.map((table) => {
+              const classNames = ["table"];
+              if (selected && selected._id === table._id)
+                classNames.push("selected");
+              return (
+                <Card.Grid
+                  key={table._id}
+                  className={classNames.join(" ")}
+                  style={{ ...gridStyle, backgroundColor: table.color }}
+                  onClick={onClick(table, room)}
+                >
+                  {`#${table.number}`}
+                  <br />
+                  {`${table.name}`}
+                </Card.Grid>
+              );
+            })}
+          </Card>
+        </div>
+      );
+    });
+  };
+
+  return (
+    <>
+      {contextHolder}
+      {render()}
+    </>
+  );
 };
 
 export default NewGuest;

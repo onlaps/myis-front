@@ -42,7 +42,7 @@ const Comp = () => {
   };
 
   useEffect(() => {
-    if (activeKey === "3") {
+    if (activeKey === "2") {
       dispatch(GET_PLACES());
       getData();
     }

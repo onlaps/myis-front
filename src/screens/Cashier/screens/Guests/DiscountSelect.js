@@ -6,9 +6,10 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
+import dayjs from "dayjs";
 
 const DiscountSelect = (props) => {
-  const { visible, setVisible, onSelect, selected } = props;
+  const { visible, setVisible, onSelect, selected, guest } = props;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [discount, setDiscount] = useState(null);
@@ -21,9 +22,15 @@ const DiscountSelect = (props) => {
   useEffect(() => {
     const getData = async () => {
       try {
-        console.log("hey");
         setLoading(true);
-        const values = { type: ["1", "2", "3", "4"] };
+        const dow = dayjs().day();
+        const day = dow === 0 ? 7 : dow;
+
+        const type = ["1"];
+        if (guest.card) {
+          type.push("3");
+        }
+        const values = { type, days: day };
         values.place = current_place._id;
         const query = queryString.stringify(values);
         const { data } = await dispatch(call({ url: `discounts?${query}` }));
@@ -97,6 +104,7 @@ const DiscountSelect = (props) => {
           rowKey="_id"
           columns={discount_columns(options)}
           dataSource={data}
+          locale={{ emptyText: "Нет доступных скидок" }}
           loading={loading}
         />
       </Modal>

@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Row, Col, Modal, Form, Typography } from "antd";
-import { Button, Select, TimePicker, Space } from "antd";
+import { Button, Select, DatePicker, Space } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import queryString from "query-string";
+import _ from "lodash";
 import dayjs from "dayjs";
+
+const { RangePicker } = DatePicker;
 
 const { Title } = Typography;
 
@@ -24,13 +27,15 @@ const ShiftUsers = (props) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const selectedUsers = Form.useWatch("users", form.current);
+
   useEffect(() => {
     if (form.current) {
       form.current.setFieldsValue({
         users: [
           {
             user: user._id,
-            time: [dayjs(current_shift.createdAt), dayjs()],
+            date: [dayjs(current_shift.createdAt), dayjs()],
           },
         ],
       });
@@ -60,9 +65,14 @@ const ShiftUsers = (props) => {
 
       for (let i = 0; i < values.users.length; i++) {
         const user = values.users[i];
-        const start_time = dayjs(user.time[0]).format("HH:mm");
-        const end_time = dayjs(user.time[1]).format("HH:mm");
-        shift_users.push({ ...user, time: [start_time, end_time] });
+        var start = dayjs(user.date[0]);
+        var end = dayjs(user.date[1]);
+
+        const duration = end.diff(start, "minutes");
+
+        const start_time = start.format("YYYY-MM-DD HH:mm");
+        const end_time = end.format("YYYY-MM-DD HH:mm");
+        shift_users.push({ ...user, time: [start_time, end_time], duration });
       }
 
       values.users = shift_users;
@@ -81,6 +91,14 @@ const ShiftUsers = (props) => {
     } catch (e) {
       setLoading(false);
     }
+  };
+
+  const getUsers = () => {
+    return users.map((u) => {
+      const isSelected = _.find(selectedUsers, { user: u._id });
+
+      return { ...u, disabled: isSelected };
+    });
   };
 
   return (
@@ -111,13 +129,17 @@ const ShiftUsers = (props) => {
                           rules={[
                             {
                               required: true,
-                              message: "Данное поле обязательно",
+                              message: "Обязательно",
                             },
                           ]}
                         >
                           <Select disabled={loading} style={{ width: 150 }}>
-                            {users.map((v) => (
-                              <Select.Option key={v._id} value={v._id}>
+                            {getUsers().map((v) => (
+                              <Select.Option
+                                key={v._id}
+                                value={v._id}
+                                disabled={v.disabled}
+                              >
                                 {v.name}
                               </Select.Option>
                             ))}
@@ -125,19 +147,20 @@ const ShiftUsers = (props) => {
                         </Form.Item>
                         <Form.Item
                           {...field}
-                          label="Время работы"
-                          key={`${index} ${field.key} time`}
-                          name={[field.name, "time"]}
+                          label="Начало"
+                          key={`${index} ${field.key} date`}
+                          name={[field.name, "date"]}
                           rules={[
                             {
                               required: true,
-                              message: "Данное поле обязательно",
+                              message: "Обязательно",
                             },
                           ]}
                         >
-                          <TimePicker.RangePicker
-                            style={{ width: "100%" }}
-                            format="HH:mm"
+                          <RangePicker
+                            showTime={{ format: "HH:mm" }}
+                            format="DD MMM, HH:mm"
+                            disabled={loading}
                           />
                         </Form.Item>
                         <Form.Item label=" " {...field}>

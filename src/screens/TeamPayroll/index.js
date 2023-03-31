@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useRef, useState } from "react";
-import { Layout, Button, Table, DatePicker } from "antd";
+import { Layout, Button, Table, DatePicker, Tooltip } from "antd";
 import { PageHeader } from "@ant-design/pro-layout";
+import { PlusCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { Form, Select } from "antd";
 import { columns } from "./data";
 import Create from "./Create";
@@ -28,6 +29,18 @@ const Screen = () => {
   const dispatch = useDispatch();
   const places = useSelector((state) => state.app.places || []);
   const user_payrolls = useSelector((state) => state.app.user_payrolls || []);
+  const salaries_plan = useSelector((state) => state.app.salaries_plan || []);
+
+  const getPlans = async () => {
+    try {
+      const values = await form.current.validateFields();
+      values.date = dayjs(values.date).format("YYYY-MM-DD");
+      const query = queryString.stringify(values);
+
+      const { data } = await dispatch(call({ url: `plans?${query}` }));
+      dispatch(SET_APP(["salaries_plan"], data));
+    } catch (e) {}
+  };
 
   const getData = async () => {
     try {
@@ -48,10 +61,79 @@ const Screen = () => {
   useEffect(() => {
     const init = async () => {
       await dispatch(GET_PLACES());
+      await getPlans();
       getData();
     };
     init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const plan_ = (v, item) => {
+    let bonus = 0;
+    const plan = _.find(salaries_plan, (sp) =>
+      _.find(sp.salaries, (s) => s._id === item.salary._id)
+    );
+
+    if (plan) {
+      item?.shift_users.forEach((o) => {
+        if (o.shift.item_sum + o.shift.service_sum > plan.shift_plan) {
+          bonus += plan.shift_bonus;
+        }
+      });
+      const places = _.groupBy(item?.shift_users, (o) => o.shift.place);
+
+      Object.keys(places).forEach((p) => {
+        const sum = _.sumBy(
+          places[p],
+          (o) => o.shift.item_sum + o.shift.service_sum
+        );
+        if (sum > plan.place_plan) {
+          bonus += plan.place_bonus;
+        } else if (sum > plan.place_goal_plan) {
+          bonus += plan.place_goal_bonus;
+        }
+      });
+    }
+
+    return bonus;
+  };
+
+  const bonuses_ = (type, html = true) => {
+    return (v, item) => {
+      const total = _.sumBy(item.bonuses, (o) => {
+        if (o.type === type) return o.value;
+        return 0;
+      });
+      if (!html) return total;
+      return (
+        <Tooltip text="Посмотреть штрафы/бонусы">
+          <Button size="small" type="link" onClick={() => setHistory(item)}>
+            <span>{total}</span>
+            <EyeOutlined />
+          </Button>
+        </Tooltip>
+      );
+    };
+  };
+
+  const hours_ = (v, item) => {
+    const sum = _.sumBy(item?.shift_users, "duration");
+    const hours = Math.round(sum / 60);
+
+    return hours;
+  };
+  const shifts_ = (v, item) => item?.shift_users?.length;
+
+  const salary_ = (v, item) => {
+    return (
+      item.salary.hourly * hours_(v, item) +
+      item.salary.shiftly * shifts_(v, item)
+    );
+  };
+
+  const prepaid_ = (v, item) => {
+    const sum = _.sumBy(item?.expenses, "total");
+    return sum;
+  };
 
   const options = {
     actions: {
@@ -60,69 +142,65 @@ const Screen = () => {
       },
     },
     shifts: {
-      render: (v) => {
-        return v.length;
-      },
+      render: shifts_,
     },
     hours: {
-      render: (v, item) => {
-        return _.sum(
-          item.shift_users.map((su) => {
-            let hour, minute;
-            [hour, minute] = su.start_time.split(":");
-            let start_at = dayjs().set("hour", hour).set("minute", minute);
-            [hour, minute] = su.end_time.split(":");
-            let end_at = dayjs().set("hour", hour).set("minute", minute);
-            var duration = end_at.diff(start_at, "hours");
-            if (duration < 0) end_at = end_at.add(1, "day");
-            duration = end_at.diff(start_at, "hours");
-            return duration;
-          })
-        );
-      },
+      render: hours_,
     },
     guests: {
       render: (v, item) => {
-        return _.sumBy(item.shifts, "guests");
+        const sum = _.sumBy(item?.shift_users, (o) => o.shift.guests);
+        return sum;
       },
     },
     menu_items: {
-      render: (v) => {
-        return v.length;
+      render: (v, item) => {
+        const sum = _.sumBy(item?.shift_users, (o) => o.shift.item_sum);
+        return sum;
       },
+    },
+    services: {
+      render: (v, item) => {
+        const sum = _.sumBy(item?.shift_users, (o) => o.shift.service_sum);
+        return sum;
+      },
+    },
+    prepaid: {
+      render: prepaid_,
+    },
+    salary: {
+      render: salary_,
+    },
+    plan: {
+      render: plan_,
     },
     bonus: {
-      render: (v, item) => {
-        const total = _.sumBy(item.bonuses, (o) => {
-          if (o.type === "bonus") return o.value;
-          return 0;
-        });
-        return (
-          <Button size="small" type="link" onClick={() => setHistory(item)}>
-            {total}
-          </Button>
-        );
-      },
+      render: bonuses_("bonus"),
     },
     penalty: {
+      render: bonuses_("penalty"),
+    },
+    total: {
       render: (v, item) => {
-        const total = _.sumBy(item.bonuses, (o) => {
-          if (o.type === "penalty") return o.value;
-          return 0;
-        });
         return (
-          <Button size="small" type="link" onClick={() => setHistory(item)}>
-            {total}
-          </Button>
+          item.fixed_salary -
+          prepaid_(v, item) +
+          salary_(v, item) +
+          plan_(v, item) +
+          bonuses_("bonus", false)(v, item) -
+          bonuses_("penalty", false)(v, item)
         );
       },
     },
     name: {
       render: (v, item) => {
         return (
-          <Button size="small" type="link" onClick={() => setUser(item)}>
-            {v}
-          </Button>
+          <Tooltip title="Добавить штраф/бонус">
+            <Button size="small" type="link" onClick={() => setUser(item)}>
+              <span>{v}</span>
+              <PlusCircleOutlined />
+            </Button>
+          </Tooltip>
         );
       },
     },
@@ -133,10 +211,8 @@ const Screen = () => {
   };
 
   const items = () => {
-    return _.filter(
-      user_payrolls,
-      (o) => o.shift_users.length > 0 && o.shifts.length > 0
-    );
+    return user_payrolls;
+    // return _.filter(user_payrolls, (o) => o.shift_users.length > 0);
   };
 
   return (

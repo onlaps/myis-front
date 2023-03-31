@@ -15,10 +15,6 @@ export const columns = (options, filters, sorter) => {
       title: "Позиции",
     },
     {
-      dataIndex: "discount",
-      title: "Скидка",
-    },
-    {
       dataIndex: "type",
       title: "Тип оплаты",
     },

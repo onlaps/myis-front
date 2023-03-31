@@ -30,7 +30,7 @@ const Prepaid = (props) => {
       timer.current = setTimeout(onSearch, 500);
     }
     if (!searching) setCompleted(false);
-  }, [searching, value]);
+  }, [searching, value]); //eslint-disable-line
 
   const onSearch = async () => {
     try {
@@ -67,10 +67,11 @@ const Prepaid = (props) => {
   return (
     <>
       <Modal
-        title="Указать предоплату"
+        title="Найти предоплату"
         open={visible}
         zIndex={1001}
         onCancel={() => setVisible(false)}
+        destroyOnClose={true}
         footer={null}
       >
         <MaskedInput

@@ -30,7 +30,7 @@ const items = [
   ]),
   getItem("Сотрудники", "/team", <TeamOutlined />, [
     getItem("График работы", "/team-time"),
-    getItem("Ставки по зарплате", "/team-salary"),
+    getItem("Зарплаты и планы", "/team-salary"),
     getItem("Расчет зарплаты", "/team-payroll"),
     getItem("Чек-листы смен", "/team-checklists"),
   ]),
@@ -52,10 +52,10 @@ const items = [
   getItem("Статистика", "/stat", <BarChartOutlined />, [
     getItem("Финансы", "/stat-finance"),
     getItem("Продажи", "/stat-sales"),
-    getItem("Акции", "/stat-promo"),
-    getItem("Расходы по категориям", "/stat-costs"),
-    getItem("Расходы по месяцам", "/stat-month"),
-    getItem("Расходы по дням", "/stat-day"),
+    getItem("ABC – Анализ", "/stat-abc"),
+    getItem("Скидки", "/stat-disc"),
+    getItem("Расходы", "/stat-month"),
+    getItem("Посещаемость", "/stat-visits"),
   ]),
   getItem("Настройки", "/edit", <SettingOutlined />, [
     getItem("Сотрудники", "/edit-team"),

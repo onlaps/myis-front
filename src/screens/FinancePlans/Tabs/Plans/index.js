@@ -3,7 +3,6 @@ import { Button, Dropdown, Popover, Table } from "antd";
 import { Modal } from "antd";
 import { columns } from "./data";
 import { call } from "@/actions/axios";
-import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,7 +13,7 @@ const { confirm } = Modal;
 
 const Comp = () => {
   const context = useContext(Context);
-  const { setAdding, setEditing } = context;
+  const { setAdding, setEditing, activeKey } = context;
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState(null);
   const [pagination, setPagination] = useState(null);
@@ -31,8 +30,10 @@ const Comp = () => {
   };
 
   useEffect(() => {
-    dispatch(GET_PLACES());
-  }, []);
+    if (activeKey === "1") {
+      getData();
+    }
+  }, [activeKey]); //eslint-disable-line
 
   const getData = async () => {
     try {
@@ -75,10 +76,6 @@ const Comp = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    getData();
-  }, []); //eslint-disable-line
 
   const items = [
     {

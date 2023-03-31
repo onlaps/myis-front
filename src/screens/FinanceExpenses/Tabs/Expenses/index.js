@@ -55,6 +55,7 @@ const Comp = () => {
   };
 
   useEffect(() => {
+    console.log("HEY");
     dispatch(GET_PLACES());
     getUsers();
     getExpenseCategories();
@@ -197,11 +198,12 @@ const Comp = () => {
         <Form.Item name="period">
           <DatePicker.RangePicker format="DD.MM.YYYY" disabled={loading} />
         </Form.Item>
-        <Form.Item name="category">
+        <Form.Item name="expense_category">
           <Select
             style={{ width: 150 }}
             placeholder="Выберите из списка"
             disabled={loading}
+            allowClear
           >
             {expense_categories &&
               expense_categories.map((v) => (
@@ -216,6 +218,7 @@ const Comp = () => {
             style={{ width: 150 }}
             placeholder="Выберите из списка"
             disabled={loading}
+            allowClear
           >
             {types &&
               types.map((v) => (

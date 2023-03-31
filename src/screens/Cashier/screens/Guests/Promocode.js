@@ -4,7 +4,6 @@ import { call } from "@/actions/axios";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
-import _ from "lodash";
 import { useEffect } from "react";
 
 const { Text } = Typography;
@@ -22,7 +21,7 @@ const Promocode = (props) => {
 
   const dispatch = useDispatch();
 
-  const onOk = () => {
+  const onSubmit = () => {
     setVisible(false);
     if (value) {
       setPromocode(value);
@@ -33,7 +32,7 @@ const Promocode = (props) => {
   useEffect(() => {
     if (visible) {
       if (promocode) {
-        setValue(promocode);
+        setText(promocode.code);
       }
     } else {
       setText(null);
@@ -92,8 +91,10 @@ const Promocode = (props) => {
         title="Поиск промокода"
         open={visible}
         zIndex={1001}
-        onOk={onOk}
+        onOk={onSubmit}
+        okText="Применить скидку"
         onCancel={() => setVisible(false)}
+        okButtonProps={{ disabled: !value }}
       >
         <Search
           placeholder="Введите промокод"

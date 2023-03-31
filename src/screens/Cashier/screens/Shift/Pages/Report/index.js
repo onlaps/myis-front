@@ -36,7 +36,7 @@ const Report = () => {
   const getCardButton = () => {
     return (
       <Button type="link" onClick={() => setType("card")}>
-        {current_shift.card_balance
+        {current_shift.is_card_balance
           ? current_shift.card_balance
           : "Задать сумму"}
       </Button>
@@ -44,8 +44,9 @@ const Report = () => {
   };
 
   const calculateCash = () => {
-    const { start_sum, cash_receiptes, withdrawal, deposit } = current_shift;
-    return start_sum - cash_receiptes - withdrawal + deposit;
+    const { start_sum, cash_receiptes, withdrawal, deposit, expenses } =
+      current_shift;
+    return start_sum + cash_receiptes - withdrawal + deposit - expenses;
   };
 
   return (

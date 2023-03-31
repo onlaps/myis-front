@@ -32,6 +32,13 @@ import GuestCards from "./screens/GuestCards";
 import GuestsBooking from "./screens/GuestsBooking";
 import GuestsDiscounts from "./screens/GuestsDiscounts";
 
+import StatFinance from "./screens/StatFinance";
+import StatSales from "./screens/StatSales";
+import StatABC from "./screens/StatABC";
+import StatDiscounts from "./screens/StatDiscounts";
+import StatExpenses from "./screens/StatExpenses";
+import StatVisits from "./screens/StatVisits";
+
 import NotFound from "./screens/NotFound";
 
 const App = () => {
@@ -68,6 +75,13 @@ const App = () => {
       <Route path="/guests-cards" element={withAuth(GuestCards)} />
       <Route path="/guests-booking" element={withAuth(GuestsBooking)} />
       <Route path="/guests-discounts" element={withAuth(GuestsDiscounts)} />
+
+      <Route path="/stat-finance" element={withAuth(StatFinance)} />
+      <Route path="/stat-sales" element={withAuth(StatSales)} />
+      <Route path="/stat-abc" element={withAuth(StatABC)} />
+      <Route path="/stat-disc" element={withAuth(StatDiscounts)} />
+      <Route path="/stat-month" element={withAuth(StatExpenses)} />
+      <Route path="/stat-visits" element={withAuth(StatVisits)} />
 
       <Route path="*" element={withAuth(NotFound)} />
     </Routes>

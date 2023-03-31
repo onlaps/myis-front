@@ -33,7 +33,7 @@ const Comp = (props) => {
 
   useEffect(() => {
     if (history) getData();
-  }, [history]);
+  }, [history]); //eslint-disable-line
 
   const options = {
     wh_action: {

@@ -35,8 +35,12 @@ export const columns = (options, filters, sorter) => {
       title: "Фикс",
     },
     {
-      dataIndex: "percent",
-      title: "Процент",
+      dataIndex: "salary",
+      title: "Ставка",
+    },
+    {
+      dataIndex: "plan",
+      title: "Премия",
     },
     {
       dataIndex: "bonus",

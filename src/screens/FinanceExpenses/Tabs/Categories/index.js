@@ -95,6 +95,12 @@ const Comp = () => {
         return "Нет";
       },
     },
+    reported: {
+      render: (val) => {
+        if (val) return "Да";
+        return "Нет";
+      },
+    },
   };
 
   return (
