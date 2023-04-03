@@ -25,7 +25,7 @@ jobs:
         uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: "env/.env.local"
-          FILE_BASE64: "UkVBQ1RfQVBQX0JBU0VfVVJMPWh0dHA6Ly9sb2NhbGhvc3Q6ODAwMS8="
+          FILE_BASE64: "UkVBQ1RfQVBQX0JBU0VfVVJMPWh0dHBzOi8vYXBpLm15cm9vbS5rei8="
 
       - name: Install Yarn
         run: npm install -g yarn
