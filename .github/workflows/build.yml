@@ -18,14 +18,23 @@ jobs:
         with:
           node-version: 14
 
+      - name: Create catalog env
+        run: mkdir env
+
+      - name: Create file env
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "env/.env.local"
+          FILE_BASE64: "UkVBQ1RfQVBQX0JBU0VfVVJMPWh0dHA6Ly9sb2NhbGhvc3Q6ODAwMS8="
+
       - name: Install Yarn
         run: npm install -g yarn
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn
 
       - name: Build
-        run: REACT_APP_BASE_URL=https://api.myroom.kz/ yarn build
+        run: yarn build
 
       - name: Deploy to build branch
         uses: JamesIves/github-pages-deploy-action@4.1.5
