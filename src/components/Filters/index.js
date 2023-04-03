@@ -6,7 +6,7 @@ import _ from "lodash";
 import dayjs from "dayjs";
 
 const Filters = forwardRef((props, ref) => {
-  const { onFinish, children } = props;
+  const { onFinish, children, layout, style } = props;
 
   const dispatch = useDispatch();
   const places = useSelector((state) => state.app.places || []);
@@ -74,9 +74,9 @@ const Filters = forwardRef((props, ref) => {
 
   return (
     <Form
-      style={{ marginBottom: 16 }}
+      style={style}
       ref={ref}
-      layout="inline"
+      layout={layout}
       onFinish={onFinish}
       onFieldsChange={onFieldsChange}
     >
@@ -84,5 +84,10 @@ const Filters = forwardRef((props, ref) => {
     </Form>
   );
 });
+
+Filters.defaultProps = {
+  layout: "inline",
+  style: { marginBottom: 16 },
+};
 
 export default Filters;

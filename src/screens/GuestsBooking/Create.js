@@ -216,7 +216,11 @@ const Booking = (props) => {
               name="date"
               rules={[{ required: true, message: "Данное поле обязательно" }]}
             >
-              <DatePicker style={{ width: "100%" }} format="DD.MM.YYYY" />
+              <DatePicker
+                style={{ width: "100%" }}
+                format="DD.MM.YYYY"
+                disabled={loading}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -229,6 +233,7 @@ const Booking = (props) => {
                 style={{ width: "100%" }}
                 format="HH:mm"
                 minuteStep={15}
+                disabled={loading}
               />
             </Form.Item>
           </Col>

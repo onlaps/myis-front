@@ -3,25 +3,22 @@ import { Table, Form, Select, Button, DatePicker } from "antd";
 import Filters from "@/components/Filters";
 import { columns } from "./data";
 import { useDispatch, useSelector } from "react-redux";
-import queryString from "query-string";
-import { SET_APP } from "@/actions/app";
 import { GET_PLACES } from "@/actions/api";
 import { call } from "@/actions/axios";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 
 const Comp = () => {
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
 
   const form = useRef();
   const places = useSelector((state) => state.app.places || []);
-  const shift_cash = useSelector((state) => state.app.shift_cash || []);
 
   const getData = async () => {
     try {
-      return;
       setLoading(true);
       const values = await form.current.validateFields();
       if (values.period) {
@@ -29,13 +26,12 @@ const Comp = () => {
         values.start_at = dayjs(start_at).format("YYYY-MM-DD");
         values.end_at = dayjs(end_at).format("YYYY-MM-DD");
       }
-      const query = queryString.stringify(values);
 
       const { data } = await dispatch(
-        call({ url: `shift_cash/place/all?${query}` })
+        call({ url: `statistic/abc`, method: "POST", data: values })
       );
 
-      dispatch(SET_APP(["shift_cash"], data));
+      setData(data);
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -83,7 +79,8 @@ const Comp = () => {
         columns={columns(options)}
         pagination={false}
         rowKey="_id"
-        dataSource={shift_cash}
+        bordered
+        dataSource={data}
         loading={loading}
       />
     </>

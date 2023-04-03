@@ -6,6 +6,7 @@ import "antd/dist/reset.css";
 import "./App.less";
 
 import Home from "./screens/Home";
+import Mobile from "./screens/Mobile";
 import CashierSelect from "./screens/CashierSelect";
 import Cashier from "./screens/Cashier";
 import Login from "./screens/Login";
@@ -45,6 +46,7 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={withAuth(Home)} />
+      <Route path="/mobile" element={withAuth(Mobile)} />
       <Route path="/cashier-select" element={withAuth(CashierSelect)} />
       <Route path="/cashier/*" element={withAuth(Cashier)} />
       <Route path="/login" element={<Login />} />
