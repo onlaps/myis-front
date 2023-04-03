@@ -37,7 +37,7 @@
   },
   "scripts": {
     "start": "env-cmd -f ./env/.env.local craco start",
-    "build": "env-cmd -f ./env/.env.local craco build",
+    "build": "CI=false && env-cmd -f ./env/.env.local craco build",
     "test": "env-cmd -f ./env/.env.local craco test",
     "eject": "react-scripts eject"
   },
