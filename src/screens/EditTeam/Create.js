@@ -22,23 +22,26 @@ const Comp = (props) => {
 
   useEffect(() => {
     if (form.current) {
-      if (editing) {
-        const values = { ...editing, password: "++++++" };
-        if (values.salary) values.salary = values.salary._id;
+      let values = {};
+      if (adding) {
+        if (editing) {
+          values = { ...editing, password: "++++++" };
+          if (values.salary) values.salary = values.salary._id;
+        } else {
+          values.places = places.map((p) => p._id);
+        }
         form.current.setFieldsValue(values);
       } else {
         form.current.resetFields();
       }
     }
-  }, [editing]);
+  }, [editing, adding, places]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
 
     // if (_.isEmpty(values.salary)) values.salary = null;
     // else values.salary = values.salary._id;
-
-    console.log(values);
 
     // if (_.isEmpty(values.role)) values.role = null;
     // else values.role = values.role._id;

@@ -32,19 +32,16 @@ const Categories = (props) => {
 
   useEffect(() => {
     if (form.current) {
-      form.current.resetFields();
+      if (adding) {
+        if (editing) {
+          const values = { ...editing };
+          form.current.setFieldsValue(values);
+        }
+      } else {
+        form.current.resetFields();
+      }
     }
-    if (editing) {
-      const values = { ...editing };
-      form.current.setFieldsValue(values);
-    }
-  }, [editing]);
-
-  useEffect(() => {
-    if (!adding && form.current) {
-      form.current.resetFields();
-    }
-  }, [adding]);
+  }, [editing, adding]);
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
@@ -61,14 +58,13 @@ const Categories = (props) => {
           })
         );
         dispatch(SET_APP_BY_PARAM(["expense_categories"], ["_id", _id], data));
-        setAdding(false);
       } else {
         const { data } = await dispatch(
           call({ url: `expense_categories`, method: "POST", data: values })
         );
         dispatch(PUSH_APP(["expense_categories"], data));
-        setAdding(false);
       }
+      setAdding(false);
       setLoading(false);
     } catch (e) {
       setLoading(false);
@@ -142,21 +138,32 @@ const Expenses = (props) => {
 
   useEffect(() => {
     if (form.current) {
-      form.current.resetFields();
-    }
-    if (editing) {
-      const values = { ...editing };
-      form.current.setFieldsValue(values);
-    }
-  }, [editing]);
-
-  useEffect(() => {
-    if (form.current) {
-      if (!adding) {
+      if (adding) {
+        let values = {};
+        if (editing) {
+          values = { ...editing };
+          values.date = dayjs(values.date);
+          const [hour, minute] = values.time.split(":");
+          values.time = dayjs(values.date).hour(hour).minute(minute);
+          values.place = values.place._id;
+          values.items = values.items.map((item) => {
+            const { expense_category } = item;
+            const value = { ...item, expense_category: expense_category._id };
+            if (value?.user && value?.user?._id) {
+              value.user = value.user._id;
+            }
+            return value;
+          });
+        } else {
+          values.date = dayjs();
+          values.time = dayjs();
+        }
+        form.current.setFieldsValue(values);
+      } else {
         form.current.resetFields();
       }
     }
-  }, [adding]); //eslint-disable-line
+  }, [editing, adding]); //eslint-disable-line
 
   const onSubmit = async () => {
     const values = await form.current.validateFields();
@@ -169,10 +176,18 @@ const Expenses = (props) => {
 
     try {
       setLoading(true);
-      const { data } = await dispatch(
-        call({ url: `expenses`, method: "POST", data: values })
-      );
-      dispatch(PUSH_APP(["expenses"], data));
+      if (editing) {
+        const { _id } = editing;
+        const { data } = await dispatch(
+          call({ url: `expenses/${_id}`, method: "PATCH", data: values })
+        );
+        dispatch(SET_APP_BY_PARAM(["expenses"], ["_id", _id], data));
+      } else {
+        const { data } = await dispatch(
+          call({ url: `expenses`, method: "POST", data: values })
+        );
+        dispatch(PUSH_APP(["expenses"], data));
+      }
       setAdding(false);
       setLoading(false);
     } catch (e) {

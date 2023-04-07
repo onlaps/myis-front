@@ -16,7 +16,7 @@ import _ from "lodash";
 const { confirm } = Modal;
 
 const Comp = () => {
-  const { activeKey } = useContext(Context);
+  const { activeKey, setEditing, setAdding } = useContext(Context);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState(null);
   const [pagination, setPagination] = useState({
@@ -100,6 +100,10 @@ const Comp = () => {
   };
 
   const onClick = (item) => (e) => {
+    if (e.key === "1") {
+      setEditing(item);
+      setAdding(true);
+    }
     if (e.key === "2") {
       confirm({
         title: "Вы уверены?",
@@ -116,6 +120,10 @@ const Comp = () => {
   };
 
   const items = [
+    {
+      key: "1",
+      label: "Редактировать",
+    },
     {
       key: "2",
       label: "Удалить",

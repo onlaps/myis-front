@@ -43,7 +43,15 @@ const Screen = () => {
         align="middle"
         style={{ minHeight: "100vh" }}
       >
-        <Col span={4} className="login__form">
+        <Col
+          xxl={4}
+          xl={4}
+          lg={4}
+          md={6}
+          sm={16}
+          xs={16}
+          className="login__form"
+        >
           <Form onFinish={onFinish} ref={form}>
             <Form.Item
               name="login"

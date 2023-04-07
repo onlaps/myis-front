@@ -36,65 +36,53 @@ const Screen = (props) => {
 
   const agg = (v) => _.sumBy(data, v);
 
+  const getValue = (v) => {
+    if (data.length === 0) return 0;
+    if (v === 0) {
+      const guests = agg("offline_guests");
+      if (guests === 0) return 0;
+      return agg("online_guests") / guests;
+    } else if (v === 1) return agg("revenue_today");
+    else if (v === 2) return _.meanBy(data, "total_guests_month");
+    else if (v === 3) return agg("revenue_month");
+    else if (v === 4) return agg("expenses_month");
+    else if (v === 5) return agg("profit_month");
+  };
+
+  const mainTabs = [
+    { key: 0, title: "Клиентов, сегодня" },
+    { key: 1, title: "Выручка, сегодня", suffix: "₸", decimalSeparator: " " },
+    { key: 2, title: "Клиентов, в среднем" },
+    {
+      key: 3,
+      title: "Выручка, с начала месяца",
+      suffix: "₸",
+      decimalSeparator: " ",
+    },
+    {
+      key: 4,
+      title: "Расходы, с начала месяца",
+      suffix: "₸",
+      decimalSeparator: " ",
+    },
+    {
+      key: 5,
+      title: "Прибыль, с начала месяца",
+      suffix: "₸",
+      decimalSeparator: " ",
+    },
+  ];
+
   return (
     <Content className="main__content__layout">
       <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="Клиентов, сегодня"
-              value={`${agg("online_guests")}/${agg("offline_guests")}`}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="Выручка, сегодня"
-              value={agg("revenue_today")}
-              groupSeparator=" "
-              suffix="₸"
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="Клиентов, в среднем"
-              value={_.meanBy(data, "total_guests_month")}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="Выручка, с начала месяца"
-              value={agg("revenue_month")}
-              groupSeparator=" "
-              suffix="₸"
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="Расходы, с начала месяца"
-              value={agg("expenses_month")}
-              groupSeparator=" "
-              suffix="₸"
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card>
-            <Statistic
-              title="Прибыль, с начала месяца"
-              value={agg("profit_month")}
-              groupSeparator=" "
-              suffix="₸"
-            />
-          </Card>
-        </Col>
+        {mainTabs.map(({ key, ...tab }, index) => (
+          <Col span={4} key={key}>
+            <Card>
+              <Statistic {...tab} value={getValue(index)} />
+            </Card>
+          </Col>
+        ))}
       </Row>
       <Table
         size="small"
