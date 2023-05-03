@@ -15,11 +15,14 @@ import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import _ from "lodash";
 import { SET_APP } from "@/actions/app";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 export const Context = createContext();
 const { Content } = Layout;
 
 const Screen = () => {
+  const createAccesses = useAccesses(["create"]);
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const [user, setUser] = useState(false);
@@ -136,11 +139,6 @@ const Screen = () => {
   };
 
   const options = {
-    actions: {
-      render: (_, item) => {
-        return <div className="actions">123</div>;
-      },
-    },
     shifts: {
       render: shifts_,
     },
@@ -182,8 +180,9 @@ const Screen = () => {
     },
     total: {
       render: (v, item) => {
+        const salary = item.fixed_salary || 0;
         return (
-          item.fixed_salary -
+          salary -
           prepaid_(v, item) +
           salary_(v, item) +
           plan_(v, item) +
@@ -196,7 +195,12 @@ const Screen = () => {
       render: (v, item) => {
         return (
           <Tooltip title="Добавить штраф/бонус">
-            <Button size="small" type="link" onClick={() => setUser(item)}>
+            <Button
+              size="small"
+              type="link"
+              onClick={() => setUser(item)}
+              disabled={!isAllowed("team_payroll", createAccesses)}
+            >
               <span>{v}</span>
               <PlusCircleOutlined />
             </Button>
@@ -215,6 +219,16 @@ const Screen = () => {
     // return _.filter(user_payrolls, (o) => o.shift_users.length > 0);
   };
 
+  const extra = [];
+
+  if (isAllowed("team_payroll", createAccesses)) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать
+      </Button>
+    );
+  }
+
   return (
     <>
       <Context.Provider
@@ -224,19 +238,7 @@ const Screen = () => {
         <History />
         <Award />
         <Layout>
-          <PageHeader
-            title="Расчет зарплаты"
-            ghost={false}
-            extra={[
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]}
-          />
+          <PageHeader title="Расчет зарплаты" ghost={false} extra={extra} />
           <Content className="main__content__layout">
             <Filters ref={form} onFinish={onFinish}>
               <Form.Item name="place">

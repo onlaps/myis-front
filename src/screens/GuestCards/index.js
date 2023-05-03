@@ -3,15 +3,50 @@ import { Layout, Tabs, Button } from "antd";
 import { PageHeader } from "@ant-design/pro-layout";
 import { List, Sources, Statistic } from "./Tabs";
 import Create from "./Create";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
+import _ from "lodash";
 
 export const Context = createContext();
 
 const { Content } = Layout;
 
 const Screen = (props) => {
-  const [activeKey, setActiveKey] = useState("1");
+  const accesses = useAccesses();
+  const createAccesses = useAccesses(["create"]);
+  const items = [];
+
+  if (isAllowed("guest_card", accesses)) {
+    items.push({
+      key: "1",
+      label: "Список",
+      children: <List />,
+    });
+  }
+  if (isAllowed("guest_card_sources", accesses)) {
+    items.push({
+      key: "2",
+      label: "Источники",
+      children: <Sources />,
+    });
+  }
+  if (isAllowed("guest_card_statistic", accesses)) {
+    items.push({
+      key: "3",
+      label: "Статистика",
+      children: <Statistic />,
+    });
+  }
+  let key = null;
+
+  if (items.length > 0) {
+    key = _.last(items).key;
+  }
+
+  const [activeKey, setActiveKey] = useState(key);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
+
   const onTabClick = (activeKey) => {
     setActiveKey(activeKey);
   };
@@ -20,23 +55,20 @@ const Screen = (props) => {
     if (!adding) setEditing(null);
   }, [adding]);
 
-  const items = [
-    {
-      key: "1",
-      label: "Список",
-      children: <List />,
-    },
-    {
-      key: "2",
-      label: "Источники",
-      children: <Sources />,
-    },
-    {
-      key: "3",
-      label: "Статистика",
-      children: <Statistic />,
-    },
-  ];
+  const extra = [];
+
+  if (activeKey !== "3") {
+    if (
+      isAllowed("guest_card", createAccesses) ||
+      isAllowed("guest_card_sources", createAccesses)
+    ) {
+      extra.push(
+        <Button key="create" type="primary" onClick={() => setAdding(true)}>
+          Создать
+        </Button>
+      );
+    }
+  }
 
   return (
     <Context.Provider
@@ -44,21 +76,7 @@ const Screen = (props) => {
     >
       <Layout>
         <Create />
-        <PageHeader
-          title="Карта гостя"
-          ghost={false}
-          extra={
-            activeKey === "3" || [
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]
-          }
-        />
+        <PageHeader title="Карта гостя" ghost={false} extra={extra} />
         <Content className="main__content__layout">
           <Tabs onChange={onTabClick} activeKey={activeKey} items={items} />
         </Content>

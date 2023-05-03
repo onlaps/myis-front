@@ -8,13 +8,41 @@ import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { useDispatch } from "react-redux";
 import queryString from "query-string";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
+import _ from "lodash";
 
 const { Content } = Layout;
 
 export const Context = createContext();
 
 const Screen = () => {
-  const [activeKey, setActiveKey] = useState("1");
+  const accesses = useAccesses();
+  const createAccesses = useAccesses(["create"]);
+  const items = [];
+
+  if (isAllowed("team_time_shift", accesses)) {
+    items.push({
+      key: "1",
+      label: "По сменам",
+      children: <Shifts />,
+    });
+  }
+  if (isAllowed("team_time_employee", accesses)) {
+    items.push({
+      key: "2",
+      label: "По сотрудникам",
+      children: <Employees />,
+    });
+  }
+
+  let key = null;
+
+  if (items.length > 0) {
+    key = _.last(items).key;
+  }
+
+  const [activeKey, setActiveKey] = useState(key);
   const [editing, setEditing] = useState(null);
   const [adding, setAdding] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,30 +85,22 @@ const Screen = () => {
     getData();
   }, [dataFilters]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const items = [
-    {
-      key: "1",
-      label: "По сменам",
-      children: <Shifts />,
-    },
-    {
-      key: "2",
-      label: "По сотрудникам",
-      children: <Employees />,
-    },
-  ];
+  const extra = [];
+
+  if (
+    isAllowed("team_time_shift", createAccesses) ||
+    isAllowed("team_time_employee", createAccesses)
+  ) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать смену
+      </Button>
+    );
+  }
 
   return (
     <Layout>
-      <PageHeader
-        title="График работы"
-        ghost={false}
-        extra={[
-          <Button key="create" type="primary" onClick={() => setAdding(true)}>
-            Создать смену
-          </Button>,
-        ]}
-      />
+      <PageHeader title="График работы" ghost={false} extra={extra} />
       <Content className="main__content__layout">
         <Context.Provider
           value={{

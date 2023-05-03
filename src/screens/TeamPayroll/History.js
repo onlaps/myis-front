@@ -10,8 +10,11 @@ import classNames from "classnames";
 import queryString from "query-string";
 import "./index.less";
 import { useDispatch, useSelector } from "react-redux";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const Comp = (props) => {
+  const deleteAccesses = useAccesses(["delete"]);
   const context = useContext(Context);
   const [loading, setLoading] = useState(false);
   const { history, setHistory } = context;
@@ -69,7 +72,7 @@ const Comp = (props) => {
       render: (_, item) => {
         return (
           <Button
-            disabled={loading}
+            disabled={loading || !isAllowed("team_payroll", deleteAccesses)}
             size="small"
             type="link"
             onClick={onDelete(item._id)}

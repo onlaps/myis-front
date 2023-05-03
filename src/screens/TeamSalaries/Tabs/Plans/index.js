@@ -8,10 +8,14 @@ import { SET_APP } from "@/actions/app";
 import { Context } from "../..";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Screen = () => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const { activeKey, setEditing, setAdding } = useContext(Context);
 
   const [loading, setLoading] = useState(false);
@@ -71,10 +75,12 @@ const Screen = () => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("team_salary_plans", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("team_salary_plans", deleteAccesses),
     },
   ];
 

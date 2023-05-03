@@ -39,10 +39,6 @@ export const historyColumns = (options, filters, sorter) => {
       dataIndex: "createdAt",
     },
     {
-      title: "Точка",
-      dataIndex: "place",
-    },
-    {
       title: "Количество",
       dataIndex: "amount",
     },

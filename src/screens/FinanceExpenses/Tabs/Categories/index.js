@@ -6,10 +6,14 @@ import { SET_APP } from "@/actions/app";
 import { useSelector, useDispatch } from "react-redux";
 import { EllipsisOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { Context } from "../..";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Comp = () => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const { activeKey, setEditing, setAdding } = useContext(Context);
   const [loading, setLoading] = useState(false);
 
@@ -66,10 +70,12 @@ const Comp = () => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("expense_categories", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("expense_categories", deleteAccesses),
     },
   ];
 

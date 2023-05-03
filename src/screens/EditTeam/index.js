@@ -10,12 +10,17 @@ import queryString from "query-string";
 import { SET_APP, SET_APP_BY_PARAM } from "@/actions/app";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 export const Context = createContext();
 const { Content } = Layout;
 const { confirm } = Modal;
 
 const Screen = (props) => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
+  const createAccesses = useAccesses(["create"]);
   const [adding, setAdding] = useState(false);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -116,10 +121,12 @@ const Screen = (props) => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("edit_users", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("edit_users", deleteAccesses),
     },
   ];
 
@@ -161,24 +168,22 @@ const Screen = (props) => {
     },
   };
 
+  const extra = [];
+
+  if (isAllowed("edit_users", createAccesses)) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать
+      </Button>
+    );
+  }
+
   return (
     <>
       <Context.Provider value={{ adding, setAdding, editing }}>
         <Create />
         <Layout>
-          <PageHeader
-            title="Сотрудники"
-            ghost={false}
-            extra={[
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]}
-          />
+          <PageHeader title="Сотрудники" ghost={false} extra={extra} />
           <Content className="main__content__layout">
             <Table
               columns={columns(options, filters, sorter)}

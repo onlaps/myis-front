@@ -41,6 +41,7 @@ import StatExpenses from "./screens/StatExpenses";
 import StatVisits from "./screens/StatVisits";
 
 import NotFound from "./screens/NotFound";
+import NoAccess from "./screens/NoAccess";
 
 const App = () => {
   return (
@@ -86,6 +87,7 @@ const App = () => {
       <Route path="/stat-visits" element={withAuth(StatVisits)} />
 
       <Route path="*" element={withAuth(NotFound)} />
+      <Route path="/no-access" element={withAuth(NoAccess)} />
     </Routes>
   );
 };

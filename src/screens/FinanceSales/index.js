@@ -4,6 +4,7 @@ import { PageHeader } from "@ant-design/pro-layout";
 import { Table, Form, Select, Button, DatePicker, Popover } from "antd";
 import { columns } from "./data";
 import { GET_PLACES } from "@/actions/api";
+import { DeleteOutlined } from "@ant-design/icons";
 import { call } from "@/actions/axios";
 import queryString from "query-string";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,10 +12,13 @@ import Filters from "@/components/Filters";
 import { types } from "@/screens/WarehouseActions/data";
 import dayjs from "dayjs";
 import _ from "lodash";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { Content } = Layout;
 
 const Comp = () => {
+  const deleteAccesses = useAccesses(["delete"]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState(null);
   const [pagination, setPagination] = useState({
@@ -65,6 +69,17 @@ const Comp = () => {
     getData();
   };
 
+  const onDelete = async (item) => {
+    try {
+      setLoading(true);
+      await dispatch(call({ url: `orders/${item._id}`, method: "DELETE" }));
+      await getData();
+      setLoading(false);
+    } catch (e) {
+      setLoading(false);
+    }
+  };
+
   const options = {
     guest: {
       render: (val) => {
@@ -106,6 +121,19 @@ const Comp = () => {
     sum: {
       render: (val, item) => {
         return _.sumBy(item.items, "total");
+      },
+    },
+    actions: {
+      render: (val, item) => {
+        return (
+          <Button
+            type="link"
+            onClick={() => onDelete(item)}
+            disabled={!isAllowed("sales", deleteAccesses)}
+          >
+            <DeleteOutlined />
+          </Button>
+        );
       },
     },
   };

@@ -11,6 +11,10 @@ export const sortAlphaNumeric = (a, b) => {
   return a.localeCompare(b);
 };
 
+export const isAllowed = (name, accesses) => {
+  return accesses.indexOf(name) !== -1;
+};
+
 export const advancedColumns = (options, filters, sorter) => (data) => {
   if (options) {
     Object.keys(options).forEach((dataIndex) => {

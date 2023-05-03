@@ -15,6 +15,8 @@ import Move from "./Move";
 import { useDispatch, useSelector } from "react-redux";
 import queryString from "query-string";
 import Filters from "@/components/Filters";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 import _ from "lodash";
 
 const { RangePicker } = DatePicker;
@@ -24,6 +26,8 @@ const { confirm } = Modal;
 export const Context = createContext();
 
 const Screen = (props) => {
+  const deleteAccesses = useAccesses(["delete"]);
+  const createAccesses = useAccesses(["create"]);
   const form = useRef();
   const [type, setType] = useState(null);
   const [pagination, setPagination] = useState({
@@ -123,6 +127,7 @@ const Screen = (props) => {
     {
       key: "1",
       label: "Удалить",
+      disabled: !isAllowed("wh_actions", deleteAccesses),
     },
   ];
 
@@ -207,27 +212,33 @@ const Screen = (props) => {
     getData();
   };
 
+  const extra = [];
+
+  if (isAllowed("wh_items", createAccesses)) {
+    extra.push(
+      <Button key="in" type="primary" onClick={() => setType("in")}>
+        Поступление
+      </Button>
+    );
+    extra.push(
+      <Button key="out" type="primary" onClick={() => setType("out")}>
+        Списание
+      </Button>
+    );
+    extra.push(
+      <Button key="move" type="primary" onClick={() => setType("move")}>
+        Перемещение
+      </Button>
+    );
+  }
+
   return (
     <Context.Provider value={{ type, setType }}>
       <In />
       <Out />
       <Move />
       <Layout>
-        <PageHeader
-          title="Движение товара"
-          ghost={false}
-          extra={[
-            <Button key="in" type="primary" onClick={() => setType("in")}>
-              Поступление
-            </Button>,
-            <Button key="out" type="primary" onClick={() => setType("out")}>
-              Списание
-            </Button>,
-            <Button key="move" type="primary" onClick={() => setType("move")}>
-              Перемещение
-            </Button>,
-          ]}
-        />
+        <PageHeader title="Движение товара" ghost={false} extra={extra} />
         <Content className="main__content__layout">
           <Filters ref={form} onFinish={onFinish}>
             <Form.Item name="place">

@@ -8,10 +8,14 @@ import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import { useDispatch, useSelector } from "react-redux";
 import _ from "lodash";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Comp = () => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
   // const [filters, setFilters] = useState(null);
@@ -80,10 +84,12 @@ const Comp = () => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("guest_card_discounts", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("guest_card_discounts", deleteAccesses),
     },
   ];
 

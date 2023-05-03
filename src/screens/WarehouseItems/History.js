@@ -37,7 +37,7 @@ const Comp = (props) => {
 
   const options = {
     wh_action: {
-      render: (val) => {
+      render: (val, item) => {
         let text = "";
         if (val.action === "in") text = "Поступление";
         else if (val.action === "out") text = "Списание";
@@ -49,19 +49,6 @@ const Comp = (props) => {
     createdAt: {
       render: (val) => {
         return dayjs(val).format("DD.MM.YYYY HH:mm");
-      },
-    },
-    place: {
-      render: (v, item) => {
-        if (item.wh_action.action === "move") {
-          return (
-            <>
-              <div>{item.wh_action.place.name}</div>
-              <div>{item.wh_action.place_to.name}</div>
-            </>
-          );
-        }
-        return item.wh_action.place.name;
       },
     },
   };

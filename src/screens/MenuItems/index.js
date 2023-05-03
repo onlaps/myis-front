@@ -13,12 +13,17 @@ import { SET_APP } from "@/actions/app";
 import Filters from "@/components/Filters";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 export const Context = createContext();
 const { Content } = Layout;
 const { confirm } = Modal;
 
 const Screen = (props) => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
+  const createAccesses = useAccesses(["create"]);
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const form = useRef();
@@ -113,10 +118,12 @@ const Screen = (props) => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("menu_items", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("menu_items", deleteAccesses),
     },
   ];
 
@@ -179,6 +186,16 @@ const Screen = (props) => {
     getData();
   };
 
+  const extra = [];
+
+  if (isAllowed("menu_items", createAccesses)) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать
+      </Button>
+    );
+  }
+
   return (
     <>
       <Context.Provider
@@ -186,19 +203,7 @@ const Screen = (props) => {
       >
         <Create />
         <Layout>
-          <PageHeader
-            title="Пункты меню"
-            ghost={false}
-            extra={[
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]}
-          />
+          <PageHeader title="Пункты меню" ghost={false} extra={extra} />
           <Content className="main__content__layout">
             <Filters ref={form} onFinish={onFinish}>
               <Form.Item name="place">

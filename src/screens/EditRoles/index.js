@@ -8,12 +8,17 @@ import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
 import { SET_APP } from "@/actions/app";
 import { call } from "@/actions/axios";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 export const Context = createContext();
 const { Content } = Layout;
 const { confirm } = Modal;
 
 const Screen = (props) => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
+  const createAccesses = useAccesses(["create"]);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -100,10 +105,12 @@ const Screen = (props) => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("edit_roles", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("edit_roles", deleteAccesses),
     },
   ];
 
@@ -118,6 +125,7 @@ const Screen = (props) => {
     },
     actions: {
       render: (_, item) => {
+        if (item.name === "Administrator") return null;
         return (
           <Dropdown menu={{ items, onClick: onClick(item) }}>
             <EllipsisOutlined />
@@ -127,24 +135,22 @@ const Screen = (props) => {
     },
   };
 
+  const extra = [];
+
+  if (isAllowed("edit_roles", createAccesses)) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать
+      </Button>
+    );
+  }
+
   return (
     <>
       <Context.Provider value={{ adding, setAdding, editing }}>
         <Create />
         <Layout>
-          <PageHeader
-            title="Роли"
-            ghost={false}
-            extra={[
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]}
-          />
+          <PageHeader title="Роли" ghost={false} extra={extra} />
           <Content className="main__content__layout">
             <Table
               columns={columns(options)}

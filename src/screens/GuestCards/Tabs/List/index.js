@@ -10,10 +10,14 @@ import Filters from "@/components/Filters";
 import queryString from "query-string";
 import { Context } from "../..";
 import dayjs from "dayjs";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Comp = () => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
   const [filters, setFilters] = useState(null);
@@ -110,10 +114,12 @@ const Comp = () => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("guest_card", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("guest_card", deleteAccesses),
     },
   ];
 

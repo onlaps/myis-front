@@ -8,12 +8,17 @@ import { call } from "@/actions/axios";
 import Create from "./Create";
 import { useDispatch, useSelector } from "react-redux";
 import { SET_APP, SET_APP_BY_PARAM } from "@/actions/app";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 export const Context = createContext();
 const { Content } = Layout;
 const { confirm } = Modal;
 
 const Screen = (props) => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
+  const createAccesses = useAccesses(["create"]);
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
 
@@ -89,10 +94,12 @@ const Screen = (props) => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("edit_places", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("edit_places", deleteAccesses),
     },
   ];
 
@@ -116,24 +123,22 @@ const Screen = (props) => {
     },
   };
 
+  const extra = [];
+
+  if (isAllowed("edit_places", createAccesses)) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать
+      </Button>
+    );
+  }
+
   return (
     <>
       <Context.Provider value={{ adding, setAdding, editing }}>
         <Create />
         <Layout>
-          <PageHeader
-            title="Торговые точки"
-            ghost={false}
-            extra={[
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]}
-          />
+          <PageHeader title="Торговые точки" ghost={false} extra={extra} />
           <Content className="main__content__layout">
             <Table
               columns={columns(options)}

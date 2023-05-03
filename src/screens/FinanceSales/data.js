@@ -26,6 +26,9 @@ export const columns = (options, filters, sorter) => {
       dataIndex: "user",
       title: "Пользователь",
     },
+    {
+      dataIndex: "actions",
+    },
   ];
 
   return advancedColumns(options, filters, sorter)(data);

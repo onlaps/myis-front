@@ -11,10 +11,14 @@ import Filters from "@/components/Filters";
 import { Context } from "../..";
 import _ from "lodash";
 import dayjs from "dayjs";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Comp = () => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const context = useContext(Context);
   const { setAdding, setEditing, activeKey } = context;
   const [loading, setLoading] = useState(false);
@@ -83,10 +87,12 @@ const Comp = () => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("guest_card_booking", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("guest_card_booking", deleteAccesses),
     },
   ];
 

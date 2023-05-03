@@ -12,6 +12,8 @@ import History from "./History";
 import queryString from "query-string";
 import { useDispatch, useSelector } from "react-redux";
 import Filters from "@/components/Filters";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 import _ from "lodash";
 
 const { confirm } = Modal;
@@ -20,6 +22,9 @@ export const Context = createContext();
 const { Content } = Layout;
 
 const Screen = (props) => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
+  const createAccesses = useAccesses(["create"]);
   const [adding, setAdding] = useState(false);
   const [history, setHistory] = useState(false);
   const form = useRef();
@@ -116,10 +121,12 @@ const Screen = (props) => {
     {
       key: "2",
       label: "Редактировать",
+      disabled: !isAllowed("wh_items", editAccesses),
     },
     {
       key: "3",
       label: "Удалить",
+      disabled: !isAllowed("wh_items", deleteAccesses),
     },
   ];
 
@@ -159,6 +166,16 @@ const Screen = (props) => {
     getData();
   };
 
+  const extra = [];
+
+  if (isAllowed("wh_items", createAccesses)) {
+    extra.push(
+      <Button key="create" type="primary" onClick={() => setAdding(true)}>
+        Создать
+      </Button>
+    );
+  }
+
   return (
     <>
       <Context.Provider
@@ -167,19 +184,7 @@ const Screen = (props) => {
         <Create />
         <History />
         <Layout>
-          <PageHeader
-            title="Товары"
-            ghost={false}
-            extra={[
-              <Button
-                key="create"
-                type="primary"
-                onClick={() => setAdding(true)}
-              >
-                Создать
-              </Button>,
-            ]}
-          />
+          <PageHeader title="Товары" ghost={false} extra={extra} />
           <Content className="main__content__layout">
             <Filters ref={form} onFinish={onFinish}>
               <Form.Item name="place">

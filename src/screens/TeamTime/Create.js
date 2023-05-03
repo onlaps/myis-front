@@ -11,10 +11,14 @@ import { GET_PLACES } from "@/actions/api";
 import { SET_APP } from "@/actions/app";
 import _ from "lodash";
 import dayjs from "dayjs";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Comp = (props) => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const context = useContext(Context);
   const { adding, setAdding, editing } = context;
   const [users, setUsers] = useState([]);
@@ -28,15 +32,8 @@ const Comp = (props) => {
 
   useEffect(() => {
     dispatch(GET_PLACES());
-    getUsers();
+    onSearch();
   }, []); //eslint-disable-line
-
-  const getUsers = async () => {
-    try {
-      const { data } = await dispatch(call({ url: `users` }));
-      dispatch(SET_APP(["users"], data));
-    } catch (e) {}
-  };
 
   useEffect(() => {
     if (form.current) {
@@ -131,6 +128,35 @@ const Comp = (props) => {
     } catch (e) {}
   };
 
+  const footer = [];
+
+  const isDeletable =
+    isAllowed("team_time_shift", deleteAccesses) ||
+    isAllowed("team_time_employee", deleteAccesses);
+  if (isDeletable) {
+    footer.push(
+      <Button onClick={onDelete} key="delete" type="danger">
+        Удалить
+      </Button>
+    );
+  }
+  footer.push(
+    <Button onClick={() => setAdding(false)} key="cancel">
+      Отмена
+    </Button>
+  );
+
+  const isEditable =
+    isAllowed("team_time_shift", editAccesses) ||
+    isAllowed("team_time_employee", editAccesses);
+  if (isEditable) {
+    footer.push(
+      <Button onClick={onSubmit} key="ok" type="primary">
+        Сохранить
+      </Button>
+    );
+  }
+
   return (
     <Modal
       title="Создать"
@@ -138,17 +164,7 @@ const Comp = (props) => {
       okText="Сохранить"
       onCancel={() => setAdding(false)}
       onOk={onSubmit}
-      footer={[
-        <Button onClick={onDelete} key="delete" type="danger">
-          Удалить
-        </Button>,
-        <Button onClick={() => setAdding(false)} key="cancel">
-          Отмена
-        </Button>,
-        <Button onClick={onSubmit} key="ok" type="primary">
-          Сохранить
-        </Button>,
-      ]}
+      footer={footer}
       cancelButtonProps={{ loading }}
       okButtonProps={{ loading }}
     >
@@ -158,7 +174,7 @@ const Comp = (props) => {
           name={["place", "_id"]}
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
-          <Select disabled={loading}>
+          <Select disabled={loading || !isEditable}>
             {places.map((v) => (
               <Select.Option key={v._id} value={v._id}>
                 {v.name}
@@ -182,7 +198,7 @@ const Comp = (props) => {
             showArrow={false}
             filterOption={false}
             showSearch
-            disabled={loading}
+            disabled={loading || !isEditable}
             placeholder="Введите текст для поиска"
             notFoundContent={
               users.length === 0 && search && "Нет данных по сотруднику"
@@ -195,7 +211,7 @@ const Comp = (props) => {
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
           <DatePicker
-            disabled={loading}
+            disabled={loading || !isEditable}
             style={{ width: "100%" }}
             format="DD.MM.YYYY"
           />
@@ -211,7 +227,7 @@ const Comp = (props) => {
                 style={{ width: "100%" }}
                 format="HH:mm"
                 minuteStep={15}
-                disabled={loading}
+                disabled={loading || !isEditable}
               />
             </Form.Item>
           </Col>
@@ -225,7 +241,7 @@ const Comp = (props) => {
                 style={{ width: "100%" }}
                 format="HH:mm"
                 minuteStep={15}
-                disabled={loading}
+                disabled={loading || !isEditable}
               />
             </Form.Item>
           </Col>
@@ -235,7 +251,11 @@ const Comp = (props) => {
           name="shift_number"
           rules={[{ required: true, message: "Данное поле обязательно" }]}
         >
-          <InputNumber min={1} disabled={loading} style={{ width: "100%" }} />
+          <InputNumber
+            min={1}
+            disabled={loading || !isEditable}
+            style={{ width: "100%" }}
+          />
         </Form.Item>
       </Form>
     </Modal>

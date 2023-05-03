@@ -6,10 +6,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { call } from "@/actions/axios";
 import { SET_APP } from "@/actions/app";
 import { Context } from "../..";
+import useAccesses from "@/hooks/useAccesses";
+import { isAllowed } from "@/utils";
 
 const { confirm } = Modal;
 
 const Comp = () => {
+  const editAccesses = useAccesses(["edit"]);
+  const deleteAccesses = useAccesses(["delete"]);
   const context = useContext(Context);
   const { adding, setAdding, setEditing, activeKey } = context;
   const [loading, setLoading] = useState(false);
@@ -73,10 +77,12 @@ const Comp = () => {
     {
       key: "1",
       label: "Редактировать",
+      disabled: !isAllowed("guest_card_sources", editAccesses),
     },
     {
       key: "2",
       label: "Удалить",
+      disabled: !isAllowed("guest_card_sources", deleteAccesses),
     },
   ];
 
