@@ -47,7 +47,6 @@ const items = [
       "team_time_employee",
     ]),
     getItem("Зарплаты и планы", "/team-salary", null, null, [
-      "team_salary",
       "team_salary_plans",
     ]),
     getItem("Расчет зарплаты", "/team-payroll", null, null, ["team_payroll"]),
@@ -60,10 +59,12 @@ const items = [
     ]),
     getItem("История продаж", "/finance-sales", null, null, ["sales"]),
     getItem("Расходы", "/finance-expenses", null, null, [
-      "expenses, expense_categories",
+      "expenses",
+      "expense_categories",
     ]),
     getItem("Тарифы оплаты времени", "/finance-plans", null, null, [
-      "tariffs, tariffs_statistics",
+      "tariffs",
+      "tariffs_statistics",
     ]),
   ]),
   getItem("Меню", "/menu", <FileMarkdownOutlined />, [
